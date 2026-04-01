@@ -9,6 +9,7 @@ import {
     HiOutlineTruck, HiOutlineCheck, HiOutlineXCircle,
     HiOutlineShoppingBag, HiOutlinePlus,
 } from 'react-icons/hi';
+import { useSocket } from '../../context/SocketContext';
 
 
 /* ── Status config (same palette as admin) ── */
@@ -47,6 +48,7 @@ function MyOrdersPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const { addNotification } = useUI();
+    const socket = useSocket();
     const [orders, setOrders] = useState([]);
 
     const [statusFilter, setStatusFilter] = useState('all');
@@ -54,6 +56,35 @@ function MyOrdersPage() {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => { fetchOrders(); }, []);
+
+    /* Real-time socket updates */
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleStatusUpdate = (data) => {
+            console.log('Real-time status update received:', data);
+            
+            setOrders((prevOrders) => 
+                prevOrders.map((order) => {
+                    if (order.orderId === data.orderId) {
+                        return { ...order, status: data.status, updatedAt: data.updatedAt };
+                    }
+                    return order;
+                })
+            );
+
+            addNotification({
+                type: 'info',
+                message: data.message || `Order #${data.orderId} status updated to ${data.status}`,
+            });
+        };
+
+        socket.on('statusUpdate', handleStatusUpdate);
+
+        return () => {
+            socket.off('statusUpdate', handleStatusUpdate);
+        };
+    }, [socket, addNotification]);
 
     /* refresh on navigate-back */
     useEffect(() => {

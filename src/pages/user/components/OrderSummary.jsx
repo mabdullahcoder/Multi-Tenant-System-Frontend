@@ -15,10 +15,10 @@ const OrderSummary = ({
   isProcessing
 }) => {
   return (
-    <div className={`w-full sm:w-80 md:w-96 bg-white border-t sm:border-t lg:border-t-0 lg:border-l border-gray-200 flex flex-col h-full overflow-hidden ${cartItems.length > 0 ? 'flex' : 'hidden sm:flex'}`}>
+    <div className={`w-full sm:w-80 md:w-96 bg-white border-t sm:border-t lg:border-t-0 lg:border-l border-gray-200 flex flex-col min-h-0 overflow-hidden ${cartItems.length > 0 ? 'flex' : 'hidden sm:flex'}`}>
       {/* Order Header - Fixed at top */}
       <div className="px-4 border-b border-gray-100 flex-shrink-0 bg-white">
-        <div className="flex items-center justify-between px-4 sm:px-6 py-5 border-gray-100 bg-white sticky top-0 z-20">
+        <div className="flex items-center justify-between px-4 py-3 border-gray-100 bg-white sticky top-0 z-20">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Current Order</h2>
             <p className="text-xs font-semibold text-gray-400 mt-0.5">{cartItems.length} items</p>
@@ -35,7 +35,7 @@ const OrderSummary = ({
       </div>
 
       {/* Order Items List - Image Match - Optimized Density - Flexible to fill space */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin min-h-0 flex flex-col">
+      <div className={`flex-1 min-h-0 flex flex-col ${cartItems.length > 2 ? 'overflow-y-auto scrollbar-custom' : 'overflow-y-hidden'}`}>
         {cartItems.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50/10">
             <div className="w-16 h-16 bg-gray-100/50 rounded-lg flex items-center justify-center mb-4">
@@ -45,7 +45,7 @@ const OrderSummary = ({
             <p className="text-gray-400 text-xs mt-1">Add items from menu</p>
           </div>
         ) : (
-          <div className="space-y-2 px-3 sm:px-4 py-4">
+          <div className="space-y-1.5 px-3 py-3">
             {cartItems.map((item) => (
               <div
                 key={item.id}
@@ -112,7 +112,7 @@ const OrderSummary = ({
 
       {/* Footer: Summary & Details (Flat) - Explicitly attached to bottom */}
       {cartItems.length > 0 && (
-        <div className="flex-shrink-0 p-4 sm:p-5 border-t border-gray-100 bg-white space-y-4">
+        <div className="flex-shrink-0 p-3 sm:p-4 border-t border-gray-100 bg-white space-y-3">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-500 font-medium font-bold">Subtotal</span>

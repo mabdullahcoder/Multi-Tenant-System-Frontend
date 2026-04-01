@@ -225,6 +225,37 @@ body {
     }
 }
 
+/* ─── Senior-Level Custom Scrollbar ─── */
+.scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-light) transparent;
+    transition: scrollbar-color 0.2s ease;
+}
+
+.scrollbar-custom::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 10px;
+    border: 1px solid transparent;
+}
+
+.scrollbar-custom:hover::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border: 1px solid var(--bg-surface);
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
 .scrollbar-hide {
     -ms-overflow-style: none;
 }

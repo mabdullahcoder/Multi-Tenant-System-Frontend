@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
+import { SocketProvider } from './context/SocketContext';
 import { UIProvider } from './context/UIContext';
 import { CartProvider } from './context/CartContext';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -12,13 +13,15 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
         <ErrorBoundary>
             <AuthProvider>
-                <UIProvider>
-                    <CartProvider>
-                        <Router>
-                            <App />
-                        </Router>
-                    </CartProvider>
-                </UIProvider>
+                <SocketProvider>
+                    <UIProvider>
+                        <CartProvider>
+                            <Router>
+                                <App />
+                            </Router>
+                        </CartProvider>
+                    </UIProvider>
+                </SocketProvider>
             </AuthProvider>
         </ErrorBoundary>
     </React.StrictMode>

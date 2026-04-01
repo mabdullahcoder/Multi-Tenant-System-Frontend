@@ -177,7 +177,7 @@ function PlaceOrderPage() {
 
     return (
         <MainLayout fullScreen={true}>
-            <div className="h-full bg-gray-50 overflow-hidden flex flex-col lg:flex-row">
+            <div className="flex-1 bg-gray-50 overflow-hidden flex flex-col lg:flex-row min-h-0">
                 {/* LEFT SIDE - Menu Section */}
                 <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden min-h-0">
                     <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
