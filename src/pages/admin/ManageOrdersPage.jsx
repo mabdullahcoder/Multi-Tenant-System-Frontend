@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/layouts/MainLayout';
 import { orderAPI } from '../../services/orderAPI';
 import { useUI } from '../../context/UIContext';
 import { useAuth } from '../../context/AuthContext';
+import { useSocket } from '../../context/SocketContext';
 import ResponsiveOrderTable from '../../components/ui/ResponsiveOrderTable';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
@@ -44,6 +45,7 @@ function ManageOrdersPage() {
     const navigate = useNavigate();
     const { addNotification } = useUI();
     const { user } = useAuth();
+    const socket = useSocket();
 
     const [orders, setOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +59,7 @@ function ManageOrdersPage() {
 
     useEffect(() => { fetchOrders(); }, [statusFilter]);
 
-    const fetchOrders = async () => {
+    const fetchOrders = useCallback(async () => {
         setIsLoading(true);
         try {
             const filters = statusFilter !== 'all' ? { status: statusFilter } : {};
@@ -71,14 +73,84 @@ function ManageOrdersPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [statusFilter, addNotification]);
+
+    /* Real-time socket updates for admin panel */
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleOrderStatusUpdate = (data) => {
+            console.log('✓ Admin: Real-time order status update:', data);
+
+            setOrders((prevOrders) =>
+                prevOrders.map((order) => {
+                    if (order.orderId === data.orderId || order._id === data._id) {
+                        const updatedOrder = { ...order, status: data.status, updatedAt: data.updatedAt };
+                        console.log('✓ Admin: Order updated:', updatedOrder);
+                        return updatedOrder;
+                    }
+                    return order;
+                })
+            );
+
+            addNotification({
+                type: 'info',
+                message: `Order #${data.orderId} status updated to ${data.status}`,
+            });
+        };
+
+        const handleOrderCancelled = (data) => {
+            console.log('✓ Admin: Order cancellation update:', data);
+
+            setOrders((prevOrders) =>
+                prevOrders.map((order) => {
+                    if (order.orderId === data.orderId || order._id === data._id) {
+                        const updatedOrder = { ...order, status: 'cancelled', updatedAt: data.updatedAt };
+                        console.log('✓ Admin: Order cancelled:', updatedOrder);
+                        return updatedOrder;
+                    }
+                    return order;
+                })
+            );
+
+            addNotification({
+                type: 'warning',
+                message: `Order #${data.orderId} has been cancelled`,
+            });
+        };
+
+        const handleBulkOrderStatusUpdated = (data) => {
+            console.log('✓ Admin: Bulk order status update received:', data);
+
+            // Refresh the orders list when bulk update happens
+            fetchOrders();
+
+            addNotification({
+                type: 'info',
+                message: `${data.updated} order(s) status updated to ${data.status}`,
+            });
+        };
+
+        // Listen to admin panel events
+        socket.on('orderStatusUpdated', handleOrderStatusUpdate);
+        socket.on('orderStatusUpdate', handleOrderStatusUpdate);
+        socket.on('orderCancelled', handleOrderCancelled);
+        socket.on('bulkOrderStatusUpdated', handleBulkOrderStatusUpdated);
+
+        return () => {
+            socket.off('orderStatusUpdated', handleOrderStatusUpdate);
+            socket.off('orderStatusUpdate', handleOrderStatusUpdate);
+            socket.off('orderCancelled', handleOrderCancelled);
+            socket.off('bulkOrderStatusUpdated', handleBulkOrderStatusUpdated);
+        };
+    }, [socket, addNotification, fetchOrders]);
 
     const getStatusConfig = (s) => STATUS_CONFIG[s] || STATUS_CONFIG.pending;
     const getAvailableStatusTransitions = (s) => STATUS_TRANSITIONS[s] || [];
 
     const handleStatusChange = async (orderId, newStatus, currentStatus) => {
         const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
-        
+
         // Strict transition check only for non-admins (if they had access) 
         // or as a safety layer. For admins, we allow manual overrides.
         if (!isAdmin && !STATUS_TRANSITIONS[currentStatus]?.includes(newStatus)) {
@@ -101,7 +173,7 @@ function ManageOrdersPage() {
 
     const confirmDelete = async () => {
         if (!orderToDelete) return;
-        
+
         setIsDeleting(true);
         try {
             await orderAPI.deleteOrder(orderToDelete.id);
@@ -250,7 +322,7 @@ function ManageOrdersPage() {
                             <div>
                                 <p className="text-sm font-bold text-red-900">This action cannot be undone</p>
                                 <p className="text-xs text-red-700 mt-0.5">
-                                    You are about to permanently delete order <span className="font-bold">#{orderToDelete?.number}</span>. 
+                                    You are about to permanently delete order <span className="font-bold">#{orderToDelete?.number}</span>.
                                     All associated records will be removed from the system.
                                 </p>
                             </div>

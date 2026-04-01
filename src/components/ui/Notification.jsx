@@ -31,20 +31,22 @@ function Notification() {
     }, [notifications, removeNotification]);
 
     return (
-        <div className="fixed top-20 right-4 z-50 space-y-2">
+        <div className="fixed top-4 sm:top-6 right-4 sm:right-6 z-50 space-y-2 pointer-events-none">
             {notifications.map((notification) => (
                 <div
                     key={notification.id}
-                    className={`px-6 py-4 rounded-lg shadow-lg text-white flex items-center justify-between ${notification.type === 'success' ? 'bg-green-500'
+                    className={`px-6 py-4 rounded-lg shadow-lg text-white flex items-center justify-between pointer-events-auto max-w-sm sm:max-w-md animate-fade-in-down
+                        ${notification.type === 'success' ? 'bg-green-500'
                             : notification.type === 'error' ? 'bg-red-500'
                                 : notification.type === 'warning' ? 'bg-yellow-500'
                                     : 'bg-blue-500'
                         }`}
                 >
-                    <span>{notification.message}</span>
+                    <span className="text-sm sm:text-base">{notification.message}</span>
                     <button
                         onClick={() => removeNotification(notification.id)}
-                        className="ml-4 text-white hover:text-gray-100"
+                        className="ml-4 text-white hover:text-gray-100 transition-colors flex-shrink-0 active:scale-95"
+                        aria-label="Close notification"
                     >
                         <XMarkIcon className="w-5 h-5" />
                     </button>

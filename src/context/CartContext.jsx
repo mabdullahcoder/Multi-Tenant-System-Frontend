@@ -25,28 +25,45 @@ function cartReducer(state, action) {
     switch (action.type) {
         case 'ADD_TO_CART': {
             const existing = state.items.find((i) => i.id === action.payload.id);
+            const MAX_QUANTITY = 99;
+            const newQuantity = existing ? existing.quantity + 1 : 1;
+
+            if (newQuantity > MAX_QUANTITY) {
+                return { ...state, error: `Maximum quantity is ${MAX_QUANTITY}` };
+            }
+
             items = existing
-                ? state.items.map((i) => i.id === action.payload.id ? { ...i, quantity: i.quantity + 1 } : i)
+                ? state.items.map((i) => i.id === action.payload.id ? { ...i, quantity: newQuantity } : i)
                 : [...state.items, { ...action.payload, quantity: 1 }];
             saveCart(items);
-            return { ...state, items };
+            return { ...state, items, error: null };
         }
         case 'REMOVE_FROM_CART':
             items = state.items.filter((i) => i.id !== action.payload);
             saveCart(items);
-            return { ...state, items };
+            return { ...state, items, error: null };
 
         case 'UPDATE_QUANTITY': {
             const { productId, quantity } = action.payload;
-            items = quantity <= 0
+            const MAX_QUANTITY = 99;
+
+            if (quantity < 0) {
+                return { ...state, error: 'Quantity cannot be negative' };
+            }
+
+            if (quantity > MAX_QUANTITY) {
+                return { ...state, error: `Maximum quantity is ${MAX_QUANTITY}` };
+            }
+
+            items = quantity === 0
                 ? state.items.filter((i) => i.id !== productId)
                 : state.items.map((i) => i.id === productId ? { ...i, quantity } : i);
             saveCart(items);
-            return { ...state, items };
+            return { ...state, items, error: null };
         }
         case 'CLEAR_CART':
             saveCart([]);
-            return { ...state, items: [] };
+            return { ...state, items: [], error: null };
 
         case 'SET_CART_ERROR':
             return { ...state, error: action.payload };

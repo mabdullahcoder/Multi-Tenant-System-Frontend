@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MainLayout from '../../components/layouts/MainLayout';
 import { orderAPI } from '../../services/orderAPI';
@@ -22,9 +22,11 @@ const STATUS_CONFIG = {
 };
 
 const FILTERS = [
-    { key: 'all', label: 'All Orders' },
+    { key: 'all', label: 'All' },
     { key: 'pending', label: 'Pending' },
-    { key: 'completed', label: 'Completed' },
+    { key: 'confirmed', label: 'Confirmed' },
+    { key: 'shipped', label: 'Shipped' },
+    { key: 'delivered', label: 'Delivered' },
     { key: 'cancelled', label: 'Cancelled' },
 ];
 
@@ -62,11 +64,11 @@ function MyOrdersPage() {
         if (!socket) return;
 
         const handleStatusUpdate = (data) => {
-            console.log('Real-time status update received:', data);
-            
-            setOrders((prevOrders) => 
+            console.log('✓ Real-time status update received:', data);
+
+            setOrders((prevOrders) =>
                 prevOrders.map((order) => {
-                    if (order.orderId === data.orderId) {
+                    if (order.orderId === data.orderId || order._id === data._id) {
                         return { ...order, status: data.status, updatedAt: data.updatedAt };
                     }
                     return order;
@@ -79,10 +81,31 @@ function MyOrdersPage() {
             });
         };
 
-        socket.on('statusUpdate', handleStatusUpdate);
+        const handleOrderCancelled = (data) => {
+            console.log('✓ Order cancellation received:', data);
+
+            setOrders((prevOrders) =>
+                prevOrders.map((order) => {
+                    if (order.orderId === data.orderId || order._id === data._id) {
+                        return { ...order, status: data.status, updatedAt: data.updatedAt };
+                    }
+                    return order;
+                })
+            );
+
+            addNotification({
+                type: 'warning',
+                message: data.message || `Order #${data.orderId} has been cancelled.`,
+            });
+        };
+
+        // Listen to both event names from backend
+        socket.on('orderStatusUpdate', handleStatusUpdate);
+        socket.on('orderCancelled', handleOrderCancelled);
 
         return () => {
-            socket.off('statusUpdate', handleStatusUpdate);
+            socket.off('orderStatusUpdate', handleStatusUpdate);
+            socket.off('orderCancelled', handleOrderCancelled);
         };
     }, [socket, addNotification]);
 
@@ -117,17 +140,62 @@ function MyOrdersPage() {
 
     const getStatusConfig = (s) => STATUS_CONFIG[s] || STATUS_CONFIG.pending;
 
-    const filteredOrders = (orders || [])
-        .filter((o) => {
-            if (!searchTerm.trim()) return true;
-            const q = searchTerm.toLowerCase();
-            return o.productName?.toLowerCase().includes(q) || o.orderId?.toLowerCase().includes(q);
-        })
-        .filter((o) => {
-            if (statusFilter === 'all') return true;
-            if (statusFilter === 'completed') return o.status === 'delivered';
-            return o.status === statusFilter;
+    /**
+     * Calculate filtered orders with memoization for performance
+     * Ensures consistent filtering logic across all status types
+     */
+    const { filteredOrders, statusCounts } = useMemo(() => {
+        if (!orders || orders.length === 0) {
+            return { filteredOrders: [], statusCounts: {} };
+        }
+
+        // Count orders by each status
+        const counts = {
+            all: orders.length,
+            pending: 0,
+            confirmed: 0,
+            shipped: 0,
+            delivered: 0,
+            cancelled: 0,
+        };
+
+        // Count each status
+        orders.forEach((order) => {
+            const status = order.status || 'pending';
+            if (counts.hasOwnProperty(status)) {
+                counts[status]++;
+            }
         });
+
+        // Apply search filter first
+        let searchFiltered = orders;
+        if (searchTerm.trim()) {
+            const query = searchTerm.toLowerCase();
+            searchFiltered = orders.filter((o) => {
+                const orderId = (o.orderId || '').toLowerCase();
+                const productName = (o.productName || '').toLowerCase();
+                const productDesc = (o.productDescription || '').toLowerCase();
+                return (
+                    orderId.includes(query) ||
+                    productName.includes(query) ||
+                    productDesc.includes(query)
+                );
+            });
+        }
+
+        // Apply status filter
+        let statusFiltered = searchFiltered;
+        if (statusFilter !== 'all') {
+            statusFiltered = searchFiltered.filter(
+                (o) => (o.status || 'pending') === statusFilter
+            );
+        }
+
+        return {
+            filteredOrders: statusFiltered,
+            statusCounts: counts,
+        };
+    }, [orders, statusFilter, searchTerm]);
 
     return (
         <MainLayout>
@@ -179,25 +247,43 @@ function MyOrdersPage() {
                     )}
                 </div>
 
-                {/* ── Filter tabs ── */}
+                {/* ── Filter tabs with status counts ── */}
                 <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 scrollbar-hide">
                     <div className="flex gap-1.5 min-w-max">
-                        {FILTERS.map(({ key, label }) => (
-                            <button
-                                key={key}
-                                onClick={() => setStatusFilter(key)}
-                                className={`
-                                    px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap
-                                    transition-all duration-150
-                                    ${statusFilter === key
-                                        ? 'bg-blue-600 text-white shadow-sm'
-                                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                                    }
-                                `}
-                            >
-                                {label}
-                            </button>
-                        ))}
+                        {FILTERS.map(({ key, label }) => {
+                            const count = statusCounts[key] || 0;
+                            const isActive = statusFilter === key;
+
+                            return (
+                                <button
+                                    key={key}
+                                    onClick={() => setStatusFilter(key)}
+                                    className={`
+                                        relative px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap
+                                        transition-all duration-150 flex items-center gap-2
+                                        ${isActive
+                                            ? 'bg-blue-600 text-white shadow-md'
+                                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                                        }
+                                    `}
+                                    title={`View ${label.toLowerCase()} orders (${count})`}
+                                >
+                                    <span>{label}</span>
+                                    {count > 0 && (
+                                        <span className={`
+                                            inline-flex items-center justify-center
+                                            min-w-6 h-6 px-1.5 rounded-full text-xs font-bold
+                                            ${isActive
+                                                ? 'bg-blue-500 text-white'
+                                                : 'bg-gray-200 text-gray-700'
+                                            }
+                                        `}>
+                                            {count}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -209,10 +295,19 @@ function MyOrdersPage() {
                     </div>
                 ) : filteredOrders.length > 0 ? (
                     <>
-                        {/* result count */}
-                        <p className="text-xs text-gray-500">
-                            {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'}
-                            {(orders?.length || 0) > filteredOrders.length && ` · filtered from ${orders.length} total`}
+                        {/* result count ── */}
+                        <p className="text-xs text-gray-500 font-medium">
+                            {searchTerm ? (
+                                <>
+                                    {filteredOrders.length} {filteredOrders.length === 1 ? 'result' : 'results'} found
+                                    {statusFilter !== 'all' && ` (${statusFilter})`}
+                                </>
+                            ) : (
+                                <>
+                                    {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'}
+                                    {statusFilter !== 'all' && ` in ${statusFilter}`}
+                                </>
+                            )}
                         </p>
 
                         {/* ── Desktop table ── */}
@@ -356,28 +451,41 @@ function MyOrdersPage() {
                         <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                             <HiOutlineShoppingBag className="w-8 h-8 text-gray-400" />
                         </div>
-                        <h3 className="text-base font-semibold text-gray-900 mb-1">No orders found</h3>
-                        <p className="text-sm text-gray-500 max-w-xs mb-5">
-                            {searchTerm
-                                ? "No orders match your search. Try different keywords."
-                                : "You haven't placed any orders yet. Start by placing your first order."}
-                        </p>
-                        {!searchTerm && (
-                            <button
-                                onClick={() => navigate('/user/place-order')}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
-                            >
-                                <HiOutlinePlus className="w-4 h-4" />
-                                Place Your First Order
-                            </button>
-                        )}
-                        {searchTerm && (
-                            <button
-                                onClick={() => setSearchTerm('')}
-                                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-                            >
-                                Clear search
-                            </button>
+                        {searchTerm ? (
+                            <>
+                                <h3 className="text-base font-semibold text-gray-900 mb-1">No orders match your search</h3>
+                                <p className="text-sm text-gray-500 max-w-xs mb-5">
+                                    Try adjusting your search terms or {statusFilter !== 'all' ? 'viewing a different status.' : 'check back later.'}
+                                </p>
+                                <button
+                                    onClick={() => {
+                                        setSearchTerm('');
+                                        setStatusFilter('all');
+                                    }}
+                                    className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                                >
+                                    Clear filters
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <h3 className="text-base font-semibold text-gray-900 mb-1">
+                                    {statusFilter !== 'all' ? `No ${statusFilter} orders` : 'No orders yet'}
+                                </h3>
+                                <p className="text-sm text-gray-500 max-w-xs mb-5">
+                                    {statusFilter !== 'all'
+                                        ? `You don't have any orders in "${statusFilter}" status. Try a different status or `
+                                        : 'You haven\'t placed any orders yet. Start by '}
+                                    placing your first order.
+                                </p>
+                                <button
+                                    onClick={() => navigate('/user/place-order')}
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+                                >
+                                    <HiOutlinePlus className="w-4 h-4" />
+                                    Place Order
+                                </button>
+                            </>
                         )}
                     </div>
                 )}

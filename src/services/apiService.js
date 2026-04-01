@@ -1,6 +1,6 @@
 /**
  * API Service
- * Handles all API calls to the backend
+ * Handles all API calls to the backend with robust error handling
  */
 
 import axios from 'axios';
@@ -23,12 +23,29 @@ apiClient.interceptors.request.use((config) => {
         config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
+}, (error) => {
+    return Promise.reject(error);
 });
 
-// Handle response errors
+// Handle response errors with comprehensive error handling
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
+        // Network error or no response
+        if (!error.response) {
+            console.error('Network error:', error.message);
+            return Promise.reject({
+                response: {
+                    status: 0,
+                    data: {
+                        success: false,
+                        message: error.message || 'Network error. Please check your connection.',
+                    },
+                },
+            });
+        }
+
+        // Handle rate limiting
         if (error.response?.status === 429) {
             const retryAfter =
                 error.response?.data?.retryAfterSeconds ??
@@ -36,7 +53,6 @@ apiClient.interceptors.response.use(
                     ? Number(error.response.headers['retry-after'])
                     : null);
 
-            // Keep message stable and readable for UI notifications.
             if (retryAfter && Number.isFinite(retryAfter)) {
                 error.response.data = {
                     ...(error.response.data || {}),
@@ -46,12 +62,29 @@ apiClient.interceptors.response.use(
                 };
             }
         }
+
+        // Handle token expiration
         if (error.response?.status === 401) {
-            // Token expired, logout user
+            console.warn('Token expired or invalid');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/login';
         }
+
+        // Handle server errors
+        if (error.response?.status >= 500) {
+            console.error('Server error:', error.response?.status);
+            error.response.data = error.response.data || {
+                success: false,
+                message: 'Server error. Please try again later.',
+            };
+        }
+
+        // Handle validation errors
+        if (error.response?.status === 400) {
+            console.warn('Validation error:', error.response?.data);
+        }
+
         return Promise.reject(error);
     }
 );

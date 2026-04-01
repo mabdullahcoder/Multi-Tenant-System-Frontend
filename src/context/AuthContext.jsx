@@ -1,12 +1,56 @@
-import { createContext, useContext, useReducer } from 'react';
+import { createContext, useContext, useReducer, useMemo } from 'react';
 
-const initialState = {
-    user: JSON.parse(localStorage.getItem('user')) || null,
-    token: localStorage.getItem('token') || null,
-    isLoading: false,
-    error: null,
-    isAuthenticated: !!localStorage.getItem('token'),
+const getInitialState = () => {
+    try {
+        const user = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+
+        // Validate user is valid JSON if present
+        let parsedUser = null;
+        if (user) {
+            try {
+                parsedUser = JSON.parse(user);
+                // Validate required fields
+                if (!parsedUser.id && !parsedUser._id) {
+                    throw new Error('Invalid user object - missing id');
+                }
+            } catch (parseError) {
+                console.warn('Corrupted user data, clearing:', parseError.message);
+                localStorage.removeItem('user');
+            }
+        }
+
+        // Validate token is a string
+        const validToken = (typeof token === 'string' && token.length > 0) ? token : null;
+
+        return {
+            user: parsedUser,
+            token: validToken,
+            isLoading: false,
+            error: null,
+            isAuthenticated: !!validToken,
+        };
+    } catch (error) {
+        console.error('Failed to initialize auth state:', error.message);
+        // Clear potentially corrupted data
+        try {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+        } catch (clearError) {
+            console.error('Failed to clear localStorage:', clearError);
+        }
+
+        return {
+            user: null,
+            token: null,
+            isLoading: false,
+            error: null,
+            isAuthenticated: false,
+        };
+    }
 };
+
+const initialState = getInitialState();
 
 function authReducer(state, action) {
     switch (action.type) {
@@ -16,8 +60,12 @@ function authReducer(state, action) {
 
         case 'LOGIN_SUCCESS':
         case 'REGISTER_SUCCESS':
-            localStorage.setItem('user', JSON.stringify(action.payload.user));
-            localStorage.setItem('token', action.payload.token);
+            try {
+                localStorage.setItem('user', JSON.stringify(action.payload.user));
+                localStorage.setItem('token', action.payload.token);
+            } catch (error) {
+                console.error('Failed to save auth data to localStorage:', error);
+            }
             return {
                 ...state,
                 isLoading: false,
@@ -34,12 +82,20 @@ function authReducer(state, action) {
             return { ...state, isLoading: false, error: action.payload };
 
         case 'LOGOUT':
-            localStorage.removeItem('user');
-            localStorage.removeItem('token');
+            try {
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+            } catch (error) {
+                console.error('Failed to clear auth data from localStorage:', error);
+            }
             return { user: null, token: null, isAuthenticated: false, isLoading: false, error: null };
 
         case 'UPDATE_USER_PROFILE':
-            localStorage.setItem('user', JSON.stringify(action.payload));
+            try {
+                localStorage.setItem('user', JSON.stringify(action.payload));
+            } catch (error) {
+                console.error('Failed to update user profile in localStorage:', error);
+            }
             return { ...state, user: action.payload };
 
         case 'CLEAR_ERROR':
@@ -65,13 +121,22 @@ export function AuthProvider({ children }) {
     const updateUserProfile = (user) => dispatch({ type: 'UPDATE_USER_PROFILE', payload: user });
     const clearError = () => dispatch({ type: 'CLEAR_ERROR' });
 
+    // Memoize context value to prevent unnecessary re-renders
+    const value = useMemo(() => ({
+        ...state,
+        loginStart,
+        loginSuccess,
+        loginFailure,
+        registerStart,
+        registerSuccess,
+        registerFailure,
+        logout,
+        updateUserProfile,
+        clearError,
+    }), [state]);
+
     return (
-        <AuthContext.Provider value={{
-            ...state,
-            loginStart, loginSuccess, loginFailure,
-            registerStart, registerSuccess, registerFailure,
-            logout, updateUserProfile, clearError,
-        }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
@@ -79,6 +144,14 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
     const ctx = useContext(AuthContext);
-    if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+
+    if (!ctx) {
+        console.error('useAuth called outside AuthProvider - check component tree');
+        throw new Error(
+            'useAuth must be used within AuthProvider. ' +
+            'Make sure AuthProvider wraps the component that uses useAuth.'
+        );
+    }
+
     return ctx;
 }
