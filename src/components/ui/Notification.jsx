@@ -1,34 +1,39 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useUI } from '../../context/UIContext';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
 function Notification() {
     const { notifications, removeNotification } = useUI();
-    const timersRef = useRef({});
+    const timerRef = useRef(null);
 
     useEffect(() => {
-        notifications.forEach((notification) => {
-            if (!timersRef.current[notification.id]) {
-                timersRef.current[notification.id] = setTimeout(() => {
-                    removeNotification(notification.id);
-                    delete timersRef.current[notification.id];
-                }, 5000);
-            }
-        });
+        // Clear existing timer
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
 
-        const currentIds = new Set(notifications.map((n) => n.id));
-        Object.keys(timersRef.current).forEach((id) => {
-            if (!currentIds.has(Number(id))) {
-                clearTimeout(timersRef.current[id]);
-                delete timersRef.current[id];
-            }
-        });
+        // If there's a notification, auto-dismiss after 5 seconds
+        if (notifications.length > 0) {
+            const currentNotification = notifications[0];
+            timerRef.current = setTimeout(() => {
+                removeNotification(currentNotification.id);
+            }, 5000);
+        }
 
         return () => {
-            Object.values(timersRef.current).forEach(clearTimeout);
-            timersRef.current = {};
+            if (timerRef.current) {
+                clearTimeout(timerRef.current);
+            }
         };
     }, [notifications, removeNotification]);
+
+    // Dismiss handler - clears timer and removes notification
+    const handleDismiss = (notificationId) => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+        removeNotification(notificationId);
+    };
 
     return (
         <div className="fixed top-4 sm:top-6 right-4 sm:right-6 z-50 space-y-2 pointer-events-none">
@@ -44,7 +49,7 @@ function Notification() {
                 >
                     <span className="text-sm sm:text-base">{notification.message}</span>
                     <button
-                        onClick={() => removeNotification(notification.id)}
+                        onClick={() => handleDismiss(notification.id)}
                         className="ml-4 text-white hover:text-gray-100 transition-colors flex-shrink-0 active:scale-95"
                         aria-label="Close notification"
                     >

@@ -15,9 +15,10 @@ function uiReducer(state, action) {
             return { ...state, sidebar: { ...state.sidebar, isCollapsed: !state.sidebar.isCollapsed } };
 
         case 'ADD_NOTIFICATION':
+            // Dismiss all previous notifications and show only the new one
             return {
                 ...state,
-                notifications: [...state.notifications, { id: Date.now(), ...action.payload }],
+                notifications: [{ id: Date.now(), ...action.payload }],
             };
 
         case 'REMOVE_NOTIFICATION':
