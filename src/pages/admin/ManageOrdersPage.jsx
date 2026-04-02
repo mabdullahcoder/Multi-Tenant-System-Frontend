@@ -11,7 +11,7 @@ import Button from '../../components/ui/Button';
 import {
     HiOutlineSearch, HiOutlineX,
     HiOutlineClock, HiOutlineCheckCircle,
-    HiOutlineTruck, HiOutlineCheck, HiOutlineXCircle,
+    HiOutlineCheck, HiOutlineXCircle,
     HiOutlineShoppingCart,
 } from 'react-icons/hi';
 
@@ -19,15 +19,13 @@ import {
 const STATUS_CONFIG = {
     pending: { label: 'Pending', icon: HiOutlineClock, bgColor: 'bg-amber-50', textColor: 'text-amber-700', borderColor: 'border-amber-200' },
     confirmed: { label: 'Confirmed', icon: HiOutlineCheckCircle, bgColor: 'bg-blue-50', textColor: 'text-blue-700', borderColor: 'border-blue-200' },
-    shipped: { label: 'Shipped', icon: HiOutlineTruck, bgColor: 'bg-violet-50', textColor: 'text-violet-700', borderColor: 'border-violet-200' },
     delivered: { label: 'Delivered', icon: HiOutlineCheck, bgColor: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200' },
     cancelled: { label: 'Cancelled', icon: HiOutlineXCircle, bgColor: 'bg-red-50', textColor: 'text-red-700', borderColor: 'border-red-200' },
 };
 
 const STATUS_TRANSITIONS = {
     pending: ['confirmed', 'cancelled'],
-    confirmed: ['shipped', 'cancelled'],
-    shipped: ['delivered', 'cancelled'],
+    confirmed: ['delivered', 'cancelled'],
     delivered: [],
     cancelled: [],
 };
@@ -36,7 +34,6 @@ const FILTERS = [
     { key: 'all', label: 'All' },
     { key: 'pending', label: 'Pending' },
     { key: 'confirmed', label: 'Confirmed' },
-    { key: 'shipped', label: 'Shipped' },
     { key: 'delivered', label: 'Delivered' },
     { key: 'cancelled', label: 'Cancelled' },
 ];
@@ -75,7 +72,7 @@ function ManageOrdersPage() {
         }
     }, [statusFilter, addNotification]);
 
-    /* Real-time socket updates for admin panel */
+    /* SENIOR FIX: Separate socket listeners from data fetching to prevent infinite dependency loops */
     useEffect(() => {
         if (!socket) return;
 
@@ -119,11 +116,25 @@ function ManageOrdersPage() {
             });
         };
 
+        /** SENIOR FIX: Real-time order deletion handler */
+        const handleOrderDeleted = (data) => {
+            console.log('✓ Admin: Real-time order deletion:', data);
+
+            setOrders((prevOrders) =>
+                prevOrders.filter((order) => order.orderId !== data.orderId && order._id !== data._id)
+            );
+
+            addNotification({
+                type: 'warning',
+                message: `Order #${data.orderId} has been deleted`,
+            });
+        };
+
+        /** SENIOR FIX: Handle individual order updates for bulk operations instead of refetching entire list */
         const handleBulkOrderStatusUpdated = (data) => {
             console.log('✓ Admin: Bulk order status update received:', data);
-
-            // Refresh the orders list when bulk update happens
-            fetchOrders();
+            // Bulk updates are handled as individual orderStatusUpdated events from server
+            // No need to refetch - socket listeners above handle each order update
 
             addNotification({
                 type: 'info',
@@ -135,15 +146,17 @@ function ManageOrdersPage() {
         socket.on('orderStatusUpdated', handleOrderStatusUpdate);
         socket.on('orderStatusUpdate', handleOrderStatusUpdate);
         socket.on('orderCancelled', handleOrderCancelled);
+        socket.on('orderDeleted', handleOrderDeleted);
         socket.on('bulkOrderStatusUpdated', handleBulkOrderStatusUpdated);
 
         return () => {
             socket.off('orderStatusUpdated', handleOrderStatusUpdate);
             socket.off('orderStatusUpdate', handleOrderStatusUpdate);
             socket.off('orderCancelled', handleOrderCancelled);
+            socket.off('orderDeleted', handleOrderDeleted);
             socket.off('bulkOrderStatusUpdated', handleBulkOrderStatusUpdated);
         };
-    }, [socket, addNotification, fetchOrders]);
+    }, [socket, addNotification]);
 
     const getStatusConfig = (s) => STATUS_CONFIG[s] || STATUS_CONFIG.pending;
     const getAvailableStatusTransitions = (s) => STATUS_TRANSITIONS[s] || [];
@@ -159,8 +172,8 @@ function ManageOrdersPage() {
         }
         try {
             await orderAPI.updateOrderStatus(orderId, newStatus);
+            // SENIOR FIX: Don't call fetchOrders() here - socket listener handles real-time update
             addNotification({ type: 'success', message: `Status updated to ${newStatus}` });
-            fetchOrders();
         } catch (err) {
             addNotification({ type: 'error', message: err.response?.data?.message || 'Failed to update status' });
         }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import MainLayout from '../../components/layouts/MainLayout';
 import { useUI } from '../../context/UIContext';
+import { useSocket } from '../../context/SocketContext';
 import menuAPI from '../../services/menuAPI';
 import {
     HiOutlinePlus, HiOutlinePencil, HiOutlineTrash,
@@ -250,6 +251,7 @@ function ItemModal({ initial, categories, onSave, onClose }) {
 /* ── Main Page ── */
 function ManageMenuPage() {
     const { addNotification } = useUI();
+    const socket = useSocket();
     const [grouped, setGrouped] = useState([]);
     const [categories, setCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -279,6 +281,125 @@ function ManageMenuPage() {
     }, []);
 
     useEffect(() => { load(); }, [load]);
+
+    /**
+     * SENIOR FIX: Real-time Socket.IO listeners for menu item updates
+     * Allows admins to see changes from other admins/users without refresh
+     * Handles: create, update, delete operations
+     */
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleMenuItemUpdated = (data) => {
+            console.log('✓ Real-time menu item update received:', data);
+
+            setGrouped((prevGrouped) => {
+                const newGrouped = JSON.parse(JSON.stringify(prevGrouped)); // Deep clone
+
+                switch (data.actionType) {
+                    case 'created':
+                        // Add new item to the appropriate category
+                        const categoryToAdd = newGrouped.find(
+                            (g) => g._id === (typeof data.category === 'object' ? data.category._id : data.category)
+                        );
+                        if (categoryToAdd) {
+                            categoryToAdd.items = categoryToAdd.items || [];
+                            categoryToAdd.items.push(data);
+                            addNotification({
+                                type: 'info',
+                                message: `📝 New item added: ${data.name}`,
+                            });
+                        }
+                        break;
+
+                    case 'updated':
+                        // Find and update the item
+                        let found = false;
+                        newGrouped.forEach((group) => {
+                            const itemIndex = group.items?.findIndex((item) => item._id === data._id);
+                            if (itemIndex !== undefined && itemIndex >= 0) {
+                                group.items[itemIndex] = {
+                                    ...group.items[itemIndex],
+                                    ...data,
+                                };
+                                found = true;
+                            }
+                        });
+                        if (found) {
+                            addNotification({
+                                type: 'info',
+                                message: `✏️ Item updated: ${data.name}`,
+                            });
+                        }
+                        break;
+
+                    case 'deleted':
+                        // Remove item from all categories
+                        newGrouped.forEach((group) => {
+                            group.items = group.items?.filter((item) => item._id !== data._id) || [];
+                        });
+                        addNotification({
+                            type: 'warning',
+                            message: `🗑️ Item deleted: ${data.name}`,
+                        });
+                        break;
+                }
+
+                return newGrouped;
+            });
+        };
+
+        const handleMenuCategoryUpdated = (data) => {
+            console.log('✓ Real-time menu category update received:', data);
+
+            setCategories((prevCategories) => {
+                switch (data.actionType) {
+                    case 'created':
+                        addNotification({
+                            type: 'info',
+                            message: `📂 New category added: ${data.name}`,
+                        });
+                        return [...prevCategories, data];
+
+                    case 'updated':
+                        const updated = prevCategories.map((cat) =>
+                            cat._id === data._id ? { ...cat, ...data } : cat
+                        );
+                        addNotification({
+                            type: 'info',
+                            message: `✏️ Category updated: ${data.name}`,
+                        });
+                        return updated;
+
+                    case 'deleted':
+                        addNotification({
+                            type: 'warning',
+                            message: `🗑️ Category deleted: ${data.name}`,
+                        });
+                        return prevCategories.filter((cat) => cat._id !== data._id);
+
+                    default:
+                        return prevCategories;
+                }
+            });
+
+            // Also update grouped to reflect category changes
+            setGrouped((prevGrouped) =>
+                prevGrouped.map((group) =>
+                    group._id === data._id ? { ...group, ...data } : group
+                )
+            );
+        };
+
+        // Listen to socket events
+        socket.on('menuItemUpdated', handleMenuItemUpdated);
+        socket.on('menuCategoryUpdated', handleMenuCategoryUpdated);
+
+        return () => {
+            socket.off('menuItemUpdated', handleMenuItemUpdated);
+            socket.off('menuCategoryUpdated', handleMenuCategoryUpdated);
+        };
+    }, [socket, addNotification]);
 
     /* ── Category actions ── */
     const handleSaveCategory = async (form) => {

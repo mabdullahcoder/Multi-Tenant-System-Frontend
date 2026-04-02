@@ -132,8 +132,7 @@ function OrderDetailsPage() {
                                 </h2>
                                 <span className={`badge badge-${order.status === 'delivered' ? 'success' :
                                     order.status === 'cancelled' ? 'danger' :
-                                        order.status === 'shipped' ? 'info' :
-                                            order.status === 'confirmed' ? 'info' : 'warning'
+                                        order.status === 'confirmed' ? 'info' : 'warning'
                                     } text-sm font-semibold capitalize px-4 py-2`}>
                                     {order.status}
                                 </span>

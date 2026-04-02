@@ -6,7 +6,7 @@ import { useUI } from '../../context/UIContext';
 import {
     HiOutlineSearch, HiOutlineX,
     HiOutlineClock, HiOutlineCheckCircle,
-    HiOutlineTruck, HiOutlineCheck, HiOutlineXCircle,
+    HiOutlineCheck, HiOutlineXCircle,
     HiOutlineShoppingBag, HiOutlinePlus,
 } from 'react-icons/hi';
 import { useSocket } from '../../context/SocketContext';
@@ -16,7 +16,6 @@ import { useSocket } from '../../context/SocketContext';
 const STATUS_CONFIG = {
     pending: { label: 'Pending', icon: HiOutlineClock, bgColor: 'bg-amber-50', textColor: 'text-amber-700', borderColor: 'border-amber-200', dotColor: 'bg-amber-500' },
     confirmed: { label: 'Confirmed', icon: HiOutlineCheckCircle, bgColor: 'bg-blue-50', textColor: 'text-blue-700', borderColor: 'border-blue-200', dotColor: 'bg-blue-500' },
-    shipped: { label: 'Shipped', icon: HiOutlineTruck, bgColor: 'bg-violet-50', textColor: 'text-violet-700', borderColor: 'border-violet-200', dotColor: 'bg-violet-500' },
     delivered: { label: 'Delivered', icon: HiOutlineCheck, bgColor: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200', dotColor: 'bg-emerald-500' },
     cancelled: { label: 'Cancelled', icon: HiOutlineXCircle, bgColor: 'bg-red-50', textColor: 'text-red-700', borderColor: 'border-red-200', dotColor: 'bg-red-500' },
 };
@@ -25,7 +24,6 @@ const FILTERS = [
     { key: 'all', label: 'All' },
     { key: 'pending', label: 'Pending' },
     { key: 'confirmed', label: 'Confirmed' },
-    { key: 'shipped', label: 'Shipped' },
     { key: 'delivered', label: 'Delivered' },
     { key: 'cancelled', label: 'Cancelled' },
 ];
@@ -154,7 +152,6 @@ function MyOrdersPage() {
             all: orders.length,
             pending: 0,
             confirmed: 0,
-            shipped: 0,
             delivered: 0,
             cancelled: 0,
         };
