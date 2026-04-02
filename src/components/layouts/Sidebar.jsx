@@ -12,6 +12,7 @@ import {
     HiOutlineUser,
     HiOutlineLogout,
     HiOutlineCollection,
+    HiOutlineFire,
 } from 'react-icons/hi';
 
 const USER_MENU = [
@@ -24,6 +25,7 @@ const USER_MENU = [
 
 const ADMIN_MENU = [
     { icon: HiOutlineHome, label: 'Dashboard', path: '/admin/dashboard' },
+    { icon: HiOutlineFire, label: 'Kitchen Display', path: '/admin/kitchen-display' },
     { icon: HiOutlineDocumentText, label: 'Reports', path: '/admin/reports' },
     { icon: HiOutlineBell, label: 'Orders', path: '/admin/orders' },
     { icon: HiOutlineCollection, label: 'Manage Menu', path: '/admin/menu' },
