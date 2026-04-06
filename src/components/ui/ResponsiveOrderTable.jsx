@@ -54,19 +54,34 @@ function ActionsDropdown({
 
     // Calculate position when opening
     const updatePosition = () => {
-        if (triggerRef.current) {
-            const rect = triggerRef.current.getBoundingClientRect();
-            const spaceBelow = window.innerHeight - rect.bottom;
-            const spaceAbove = rect.top;
-            const menuHeight = 160; // approximate max height for actions
-            
-            // If not enough space below, open upwards
-            const openUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
+        if (triggerRef.current && popoverRef.current) {
+            const triggerRect = triggerRef.current.getBoundingClientRect();
+            const menuHeight = 160;
+            const menuWidth = 208; // w-52 = 208px
+
+            const spaceBelow = window.innerHeight - triggerRect.bottom;
+            const spaceAbove = triggerRect.top;
+            const openUp = spaceBelow < menuHeight && spaceAbove > menuHeight;
+
+            // Calculate horizontal position based on alignment
+            let left = triggerRect.right + window.scrollX;
+            if (align === 'right') {
+                left = triggerRect.right + window.scrollX - menuWidth;
+            }
+
+            // Ensure menu stays within viewport horizontally
+            const minLeft = 8;
+            const maxLeft = window.innerWidth - menuWidth - 8;
+            left = Math.max(minLeft, Math.min(maxLeft, left));
+
+            const top = openUp
+                ? triggerRect.top + window.scrollY - menuHeight
+                : triggerRect.bottom + window.scrollY;
 
             setPopoverPos({
-                top: openUp ? rect.top + window.scrollY : rect.bottom + window.scrollY,
-                left: align === 'right' ? rect.right + window.scrollX : rect.left + window.scrollX,
-                openUp: openUp
+                top,
+                left,
+                openUp,
             });
         }
     };
@@ -130,27 +145,26 @@ function ActionsDropdown({
                     {isOpen && (
                         <motion.div
                             ref={popoverRef}
-                            initial={{ 
-                                opacity: 0, 
-                                y: popoverPos.openUp ? 8 : -8, 
-                                scale: 0.95 
+                            initial={{
+                                opacity: 0,
+                                scale: 0.95,
+                                y: popoverPos.openUp ? 8 : -8,
                             }}
-                            animate={{ 
-                                opacity: 1, 
-                                y: popoverPos.openUp ? -4 : 4, 
-                                scale: 1 
+                            animate={{
+                                opacity: 1,
+                                scale: 1,
+                                y: 0,
                             }}
-                            exit={{ 
-                                opacity: 0, 
-                                y: popoverPos.openUp ? 8 : -8, 
-                                scale: 0.95 
+                            exit={{
+                                opacity: 0,
+                                scale: 0.95,
+                                y: popoverPos.openUp ? 8 : -8,
                             }}
                             transition={{ duration: 0.15, ease: "easeOut" }}
                             style={{
-                                position: 'absolute',
+                                position: 'fixed',
                                 top: popoverPos.top,
                                 left: popoverPos.left,
-                                transform: `${align === 'right' ? 'translateX(-100%)' : 'none'} ${popoverPos.openUp ? 'translateY(-100%)' : ''}`,
                                 zIndex: 9999,
                             }}
                             className="w-52 bg-white rounded-xl shadow-2xl border border-gray-200 py-1.5 pointer-events-auto"
@@ -513,8 +527,8 @@ function ResponsiveOrderTable({
 
                             {(() => {
                                 const isAdmin = userRole === 'admin' || userRole === 'super-admin';
-                                const displayTransitions = isAdmin 
-                                    ? allStatuses.filter(s => s !== order.status) 
+                                const displayTransitions = isAdmin
+                                    ? allStatuses.filter(s => s !== order.status)
                                     : transitions;
 
                                 if (displayTransitions.length === 0 && userRole !== 'super-admin') return null;

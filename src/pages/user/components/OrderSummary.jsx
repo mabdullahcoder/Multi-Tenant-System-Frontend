@@ -1,9 +1,8 @@
 
-import { HiOutlineTrash, HiOutlinePlus, HiOutlineMinus, HiOutlineDocumentText, HiOutlineShoppingCart } from 'react-icons/hi';
+import { HiOutlineTrash, HiOutlinePlus, HiOutlineMinus, HiOutlineShoppingCart } from 'react-icons/hi';
 
 const OrderSummary = ({
   cartItems,
-  cartItemCount,
   cartTotal,
   deliveryAddress,
   setDeliveryAddress,

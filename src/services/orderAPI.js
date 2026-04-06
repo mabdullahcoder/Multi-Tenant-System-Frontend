@@ -50,7 +50,8 @@ export const orderAPI = {
 
     // Update order status (admin)
     updateOrderStatus: async (orderId, status) => {
-        const response = await apiClient.put(`/order/${orderId}/status`, { status });
+        const payload = typeof status === 'string' ? { status } : status;
+        const response = await apiClient.put(`/order/${orderId}/status`, payload);
         return response.data;
     },
 
