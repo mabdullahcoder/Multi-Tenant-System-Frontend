@@ -141,6 +141,7 @@ function MyOrdersPage() {
     /**
      * Calculate filtered orders with memoization for performance
      * Ensures consistent filtering logic across all status types
+     * Supports both single-item and multi-item orders
      */
     const { filteredOrders, statusCounts } = useMemo(() => {
         if (!orders || orders.length === 0) {
@@ -170,6 +171,17 @@ function MyOrdersPage() {
             const query = searchTerm.toLowerCase();
             searchFiltered = orders.filter((o) => {
                 const orderId = (o.orderId || '').toLowerCase();
+
+                // Handle multi-item orders
+                if (o.items && o.items.length > 0) {
+                    const itemsText = o.items
+                        .map(item => item.productName)
+                        .join(' ')
+                        .toLowerCase();
+                    return orderId.includes(query) || itemsText.includes(query);
+                }
+
+                // Handle single-item orders (backward compatibility)
                 const productName = (o.productName || '').toLowerCase();
                 const productDesc = (o.productDescription || '').toLowerCase();
                 return (
@@ -327,10 +339,23 @@ function MyOrdersPage() {
                                     const StatusIcon = cfg.icon;
                                     const isNew = new Date() - new Date(order.createdAt) < 5 * 60 * 1000;
 
+                                    // Handle both single-item and multi-item orders
+                                    const isMultiItem = order.items && order.items.length > 1;
+                                    const totalQuantity = isMultiItem
+                                        ? order.items.reduce((sum, item) => sum + item.quantity, 0)
+                                        : order.quantity;
+                                    const displayProductName = isMultiItem
+                                        ? `${order.items.length} items`
+                                        : order.productName;
+                                    const displayProductDesc = isMultiItem
+                                        ? order.items.map(item => item.productName).slice(0, 2).join(', ') + (order.items.length > 2 ? '...' : '')
+                                        : order.productDescription;
+
                                     return (
                                         <div
                                             key={order._id}
-                                            className="grid grid-cols-[2fr_2.4fr_0.6fr_1.2fr_1.1fr] items-center px-5 py-3.5 gap-4 hover:bg-gray-50/70 transition-colors duration-100"
+                                            className="grid grid-cols-[2fr_2.4fr_0.6fr_1.2fr_1.1fr] items-center px-5 py-3.5 gap-4 hover:bg-gray-50/70 transition-colors duration-100 cursor-pointer"
+                                            onClick={() => navigate(`/user/order/${order._id}`, { state: { refresh: false } })}
                                         >
                                             {/* Order */}
                                             <div className="min-w-0">
@@ -354,16 +379,16 @@ function MyOrdersPage() {
 
                                             {/* Product */}
                                             <div className="min-w-0">
-                                                <p className="text-sm font-medium text-gray-800 truncate leading-snug">{order.productName}</p>
-                                                {order.productDescription && (
-                                                    <p className="text-xs text-gray-400 truncate mt-0.5 leading-snug">{order.productDescription}</p>
+                                                <p className="text-sm font-medium text-gray-800 truncate leading-snug">{displayProductName}</p>
+                                                {displayProductDesc && (
+                                                    <p className="text-xs text-gray-400 truncate mt-0.5 leading-snug">{displayProductDesc}</p>
                                                 )}
                                             </div>
 
                                             {/* Qty */}
                                             <div className="flex justify-center">
                                                 <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 text-gray-700 text-sm font-semibold">
-                                                    {order.quantity}
+                                                    {totalQuantity}
                                                 </span>
                                             </div>
 
@@ -373,7 +398,7 @@ function MyOrdersPage() {
                                                     ₨{order.totalAmount?.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </p>
                                                 <p className="text-xs text-gray-400 mt-0.5 leading-snug">
-                                                    ₨{(order.totalAmount / order.quantity)?.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ea.
+                                                    ₨{(order.totalAmount / totalQuantity)?.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} avg
                                                 </p>
                                             </div>
 
@@ -393,8 +418,24 @@ function MyOrdersPage() {
                                 const cfg = getStatusConfig(order.status);
                                 const isNew = new Date() - new Date(order.createdAt) < 5 * 60 * 1000;
 
+                                // Handle both single-item and multi-item orders
+                                const isMultiItem = order.items && order.items.length > 1;
+                                const totalQuantity = isMultiItem
+                                    ? order.items.reduce((sum, item) => sum + item.quantity, 0)
+                                    : order.quantity;
+                                const displayProductName = isMultiItem
+                                    ? `${order.items.length} items`
+                                    : order.productName;
+                                const displayProductDesc = isMultiItem
+                                    ? order.items.map(item => item.productName).join(', ')
+                                    : order.productDescription;
+
                                 return (
-                                    <div key={order._id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                    <div
+                                        key={order._id}
+                                        className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                                        onClick={() => navigate(`/user/order/${order._id}`, { state: { refresh: false } })}
+                                    >
                                         {/* header */}
                                         <div className="flex items-start justify-between px-4 pt-4 pb-3 border-b border-gray-100">
                                             <div className="min-w-0 flex-1">
@@ -417,15 +458,15 @@ function MyOrdersPage() {
                                         <div className="px-4 py-3 space-y-3">
                                             <div>
                                                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Product</p>
-                                                <p className="text-sm font-semibold text-gray-800 leading-snug">{order.productName}</p>
-                                                {order.productDescription && (
-                                                    <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{order.productDescription}</p>
+                                                <p className="text-sm font-semibold text-gray-800 leading-snug">{displayProductName}</p>
+                                                {displayProductDesc && (
+                                                    <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{displayProductDesc}</p>
                                                 )}
                                             </div>
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
                                                     <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Qty</p>
-                                                    <p className="text-sm font-bold text-gray-900">{order.quantity}</p>
+                                                    <p className="text-sm font-bold text-gray-900">{totalQuantity}</p>
                                                 </div>
                                                 <div>
                                                     <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total</p>

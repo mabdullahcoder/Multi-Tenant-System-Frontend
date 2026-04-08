@@ -114,6 +114,8 @@ function KitchenDisplaySystem() {
     const [orders, setOrders] = useState([]);
     const [isUpdating, setIsUpdating] = useState({});
     const socketListenersRef = useRef(null);
+    // Persist the exact moment staff clicked "Start" for each order, survives re-renders/remounts
+    const cookingStartTimes = useRef({});
 
     // Fetch pending and confirmed orders on mount
     useEffect(() => {
@@ -339,60 +341,54 @@ function KitchenDisplaySystem() {
     const handleStatusUpdate = useCallback(
         async (orderId, newStatus) => {
             setIsUpdating((prev) => ({ ...prev, [orderId]: true }));
-            try {
-                console.log(`\nKDS: GROUPED ORDER STATUS UPDATE REQUEST`);
-                console.log(`Order ID: ${orderId}`);
-                console.log(`Requested Status: ${newStatus}`);
 
-                // Find the grouped order to get all item IDs
+            // Record the exact click time when kitchen starts cooking
+            if (newStatus === 'confirmed') {
+                cookingStartTimes.current[orderId] = Date.now();
+            }
+
+            try {
+                console.log(`\nKDS: ORDER STATUS UPDATE REQUEST`);
+                console.log(`Order _id: ${orderId}, New Status: ${newStatus}`);
+
                 const groupedOrder = orders.find(order => order._id === orderId);
                 if (!groupedOrder) {
-                    throw new Error('Order not found');
+                    throw new Error('Order not found in local state');
                 }
 
-                const items = Array.isArray(groupedOrder.items) ? groupedOrder.items : [];
-
+                // Optimistic UI update
                 setOrders((prevOrders) =>
                     prevOrders.map((order) =>
                         order._id === orderId
                             ? {
                                 ...order,
                                 status: newStatus,
-                                items: items.map((item) => ({
-                                    ...item,
-                                    status: newStatus,
-                                })),
+                                items: (order.items || []).map((item) => ({ ...item, status: newStatus })),
                             }
                             : order
                     )
                 );
 
-                const updatePromises = items.map((item) =>
-                    orderAPI.updateOrderStatus(item._id, newStatus)
-                );
+                // The grouped order's _id IS the parent Order document's MongoDB _id.
+                // Always update the parent document once — never iterate over embedded item _ids,
+                // those are subdocument ids and don't exist as top-level Order documents.
+                await orderAPI.updateOrderStatus(groupedOrder._id, newStatus);
 
-                const responses = await Promise.all(updatePromises);
+                console.log(`✓ KDS: Order ${groupedOrder.orderId} → ${newStatus}`);
 
-                console.log(`✓ KDS: Grouped order ${groupedOrder.orderId} status updated`);
-                console.log(`Updated ${responses.length} items to status: ${newStatus}`);
-
-                // Verify all updates were successful
-                const failedUpdates = responses.filter(response => response?.data?.status !== newStatus);
-                if (failedUpdates.length > 0) {
-                    console.warn(`Status Mismatch! ${failedUpdates.length} items failed to update`);
-                }
             } catch (err) {
-                console.error('KDS: Failed to update grouped order status:', err);
-                console.error('Error Details:', err.response?.data);
+                console.error('KDS: Failed to update order status:', err);
+                // Roll back optimistic update
+                fetchKDSOrders();
                 addNotification({
                     type: 'error',
-                    message: err.response?.data?.message || 'Failed to update order status',
+                    message: err.response?.data?.message || err.message || 'Failed to update order status',
                 });
             } finally {
                 setIsUpdating((prev) => ({ ...prev, [orderId]: false }));
             }
         },
-        [addNotification, orders]
+        [addNotification, orders, fetchKDSOrders]
     );
 
     const pendingOrders = orders.filter((order) => order.status === 'pending');
@@ -463,6 +459,7 @@ function KitchenDisplaySystem() {
                                             order={order}
                                             onStatusUpdate={handleStatusUpdate}
                                             isUpdating={isUpdating[order._id]}
+                                            cookingStartTimes={cookingStartTimes}
                                         />
                                     ))
                                 )}
@@ -487,6 +484,7 @@ function KitchenDisplaySystem() {
                                             order={order}
                                             onStatusUpdate={handleStatusUpdate}
                                             isUpdating={isUpdating[order._id]}
+                                            cookingStartTimes={cookingStartTimes}
                                         />
                                     ))
                                 )}
@@ -511,6 +509,7 @@ function KitchenDisplaySystem() {
                                             order={order}
                                             onStatusUpdate={handleStatusUpdate}
                                             isUpdating={isUpdating[order._id]}
+                                            cookingStartTimes={cookingStartTimes}
                                         />
                                     ))
                                 )}
@@ -538,39 +537,24 @@ function KitchenDisplaySystem() {
  * OrderTicket Component - Displays grouped order as a single ticket
  * Shows all items from one customer's order in one cohesive ticket
  */
-function OrderTicket({ order, onStatusUpdate, isUpdating }) {
+function OrderTicket({ order, onStatusUpdate, isUpdating, cookingStartTimes }) {
     const statusConfig = KDS_STATUS_CONFIG[order.status] || KDS_STATUS_CONFIG.pending;
     const StatusIcon = statusConfig.icon;
-    const [remainingSeconds, setRemainingSeconds] = useState(600); // 10 minutes = 600 seconds
-    const [timerStartTime, setTimerStartTime] = useState(null);
-    const [timerStarted, setTimerStarted] = useState(false);
+    const [remainingSeconds, setRemainingSeconds] = useState(600);
 
-    // Start countdown only after kitchen begins preparation
+    // Countdown timer — only runs for confirmed orders
+    // Uses the exact click timestamp recorded in the parent ref, not the DB updatedAt
     useEffect(() => {
-        if (order.status !== 'confirmed' || timerStarted) return;
+        if (order.status !== 'confirmed') return;
 
-        const startTime = order.updatedAt
-            ? new Date(order.updatedAt).getTime()
-            : order.createdAt
-                ? new Date(order.createdAt).getTime()
-                : Date.now();
-
-        setTimerStartTime(startTime);
-        setTimerStarted(true);
-    }, [order.status, order.updatedAt, order.createdAt, timerStarted]);
-
-    // Countdown timer logic
-    useEffect(() => {
-        if (!timerStarted || !timerStartTime) return;
-        if (order.status === 'delivered' || order.status === 'cancelled') return;
+        const startTime = cookingStartTimes.current[order._id] ?? Date.now();
 
         const updateTimer = () => {
-            const now = Date.now();
-            const elapsed = Math.floor((now - timerStartTime) / 1000);
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
             const remaining = Math.max(0, 600 - elapsed);
             setRemainingSeconds(remaining);
 
-            if (remaining === 0 && order.status === 'confirmed') {
+            if (remaining === 0) {
                 onStatusUpdate(order._id, 'delivered');
             }
         };
@@ -578,7 +562,7 @@ function OrderTicket({ order, onStatusUpdate, isUpdating }) {
         updateTimer();
         const interval = setInterval(updateTimer, 1000);
         return () => clearInterval(interval);
-    }, [timerStarted, timerStartTime, order._id, order.status, onStatusUpdate]);
+    }, [order._id, order.status, onStatusUpdate, cookingStartTimes]);
 
     const formatCountdown = (seconds) => {
         const mins = Math.floor(seconds / 60);

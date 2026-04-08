@@ -128,7 +128,7 @@ function OrderDetailsPage() {
                         <div className="card">
                             <div className="flex items-start justify-between mb-4">
                                 <h2 className="text-xl font-bold text-gray-900">
-                                    Product Details
+                                    {order.items?.length > 1 ? 'Order Items' : 'Product Details'}
                                 </h2>
                                 <span className={`badge badge-${order.status === 'delivered' ? 'success' :
                                     order.status === 'cancelled' ? 'danger' :
@@ -138,44 +138,86 @@ function OrderDetailsPage() {
                                 </span>
                             </div>
 
-                            <div className="space-y-4">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                                        Product Name
-                                    </p>
-                                    <p className="text-lg font-semibold text-gray-900">{order.productName}</p>
+                            {/* Multi-item order display */}
+                            {order.items && order.items.length > 0 ? (
+                                <div className="space-y-4">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead className="border-b border-gray-200">
+                                                <tr className="text-left text-gray-600 font-semibold">
+                                                    <th className="pb-2">Product</th>
+                                                    <th className="pb-2 text-center">Qty</th>
+                                                    <th className="pb-2 text-right">Price</th>
+                                                    <th className="pb-2 text-right">Subtotal</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100">
+                                                {order.items.map((item, idx) => (
+                                                    <tr key={idx} className="hover:bg-gray-50">
+                                                        <td className="py-3">
+                                                            <div>
+                                                                <p className="font-medium text-gray-900">{item.productName}</p>
+                                                                {item.productDescription && (
+                                                                    <p className="text-xs text-gray-500 mt-0.5">{item.productDescription}</p>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 text-center font-semibold text-gray-900">{item.quantity}</td>
+                                                        <td className="py-3 text-right text-gray-900">₨{item.price?.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+                                                        <td className="py-3 text-right font-semibold text-gray-900">₨{item.subtotal?.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="pt-4 border-t border-gray-200">
+                                        <div className="text-right">
+                                            <p className="text-sm text-gray-600 mb-1">Order Total</p>
+                                            <p className="text-3xl font-bold text-blue-600">₨{order.totalAmount?.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</p>
+                                        </div>
+                                    </div>
                                 </div>
+                            ) : (
+                                // Single-item order display (backward compatibility)
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                                            Product Name
+                                        </p>
+                                        <p className="text-lg font-semibold text-gray-900">{order.productName}</p>
+                                    </div>
 
-                                {order.productDescription && (
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                                            Description
-                                        </p>
-                                        <p className="text-gray-700">{order.productDescription}</p>
-                                    </div>
-                                )}
+                                    {order.productDescription && (
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                                                Description
+                                            </p>
+                                            <p className="text-gray-700">{order.productDescription}</p>
+                                        </div>
+                                    )}
 
-                                <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                                            Quantity
-                                        </p>
-                                        <p className="text-2xl font-bold text-gray-900">{order.quantity}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                                            Unit Price
-                                        </p>
-                                        <p className="text-2xl font-bold text-gray-900">${order.price?.toFixed(2)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                                            Total
-                                        </p>
-                                        <p className="text-2xl font-bold text-blue-600">${order.totalAmount?.toFixed(2)}</p>
+                                    <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                                                Quantity
+                                            </p>
+                                            <p className="text-2xl font-bold text-gray-900">{order.quantity}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                                                Unit Price
+                                            </p>
+                                            <p className="text-2xl font-bold text-gray-900">₨{order.price?.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                                                Total
+                                            </p>
+                                            <p className="text-2xl font-bold text-blue-600">₨{order.totalAmount?.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* Delivery Address Card */}

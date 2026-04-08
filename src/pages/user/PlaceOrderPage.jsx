@@ -114,34 +114,46 @@ function PlaceOrderPage() {
         }
         setIsProcessing(true);
         try {
-            const orderPromises = cartItems.map((item) => {
-                const orderData = {
-                    productName: item.name,
-                    productDescription: item.description || '',
-                    quantity: item.quantity,
-                    price: item.price,
-                    totalAmount: item.price * item.quantity,
-                    deliveryAddress: { ...deliveryAddress },
-                };
-                return orderAPI.createOrder(orderData);
-            });
-            const results = await Promise.all(orderPromises);
-            const createdOrders = results.map(r => r.data).filter(Boolean);
+            // FIX: Create a SINGLE order with MULTIPLE items instead of multiple orders
+            const items = cartItems.map((item) => ({
+                productName: item.name,
+                productDescription: item.description || '',
+                quantity: item.quantity,
+                price: item.price,
+                subtotal: item.price * item.quantity,
+            }));
+
+            const orderData = {
+                items, // Send all items in one array
+                deliveryAddress: { ...deliveryAddress },
+            };
+
+            console.log('PlaceOrderPage - Checkout data:', JSON.stringify(orderData, null, 2));
+
+            // Single API call for entire order
+            const response = await orderAPI.createOrder(orderData);
+            const createdOrder = response.data;
 
             const snapshotItems = [...cartItems];
             const snapshotTotal = cartTotal;
             const snapshotAddress = { ...deliveryAddress };
-            const ids = createdOrders.map(o => o._id || o.orderId).filter(Boolean);
+            const orderId = createdOrder._id || createdOrder.orderId;
 
             clearCart();
-            setOrderCount(snapshotItems.length);
+            setOrderCount(1); // Now we only have 1 order
             setReceiptItems(snapshotItems);
             setReceiptTotal(snapshotTotal);
             setReceiptAddress(snapshotAddress);
-            setPlacedOrderIds(ids);
+            setPlacedOrderIds([orderId]); // Single order ID
             setPlacedAt(new Date());
             setShowReceipt(true);
+
+            addNotification({
+                type: 'success',
+                message: `Order placed successfully with ${cartItems.length} items!`
+            });
         } catch (error) {
+            console.error('Checkout error:', error);
             addNotification({ type: 'error', message: 'Something went wrong while placing your order. Please try again.' });
         } finally {
             setIsProcessing(false);
@@ -168,7 +180,7 @@ function PlaceOrderPage() {
         } else {
             currentProducts = products[selectedCategory] || [];
         }
-        
+
         return currentProducts.filter(product =>
             product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             product.description.toLowerCase().includes(searchQuery.toLowerCase())
