@@ -3,7 +3,7 @@ import MainLayout from '../../components/layouts/MainLayout';
 import { useSocket } from '../../context/SocketContext';
 import { useUI } from '../../context/UIContext';
 import { orderAPI } from '../../services/orderAPI';
-import { typography } from '../../config/theme';
+import { spacing, typography } from '../../config/theme';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import StatCard from '../../components/ui/StatCard';
@@ -12,6 +12,7 @@ import {
     HiOutlineCheckCircle,
     HiOutlineCheck,
     HiOutlineXCircle,
+    HiOutlineUser,
 } from 'react-icons/hi';
 
 /* ── KDS Status Config for Kitchen Workflow ── */
@@ -358,6 +359,7 @@ function KitchenDisplaySystem() {
                             ? {
                                 ...order,
                                 status: newStatus,
+                                updatedAt: new Date().toISOString(),
                                 items: items.map((item) => ({
                                     ...item,
                                     status: newStatus,
@@ -416,7 +418,7 @@ function KitchenDisplaySystem() {
                     </div>
 
                     {/* Order Counts */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                         <StatCard
                             title="New Orders"
                             value={pendingOrders.length}
@@ -445,7 +447,7 @@ function KitchenDisplaySystem() {
                 </div>
 
                 {/* Orders Display - Kanban Board Style */}
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                     {/* New Orders Column */}
                     <div className="lg:col-span-1">
                         <Card className={`${KDS_STATUS_CONFIG.pending.borderColor} ${KDS_STATUS_CONFIG.pending.bgColor}`} padding="lg">
@@ -543,34 +545,30 @@ function OrderTicket({ order, onStatusUpdate, isUpdating }) {
     const StatusIcon = statusConfig.icon;
     const [remainingSeconds, setRemainingSeconds] = useState(600); // 10 minutes = 600 seconds
     const [timerStartTime, setTimerStartTime] = useState(null);
-    const [timerStarted, setTimerStarted] = useState(false);
 
-    // Start countdown only after kitchen begins preparation
+    // Initialize countdown timer only for confirmed orders
     useEffect(() => {
-        if (order.status !== 'confirmed' || timerStarted) return;
+        if (order.status === 'confirmed' && order.updatedAt) {
+            // Use order confirmation time as timer start time
+            const startTime = new Date(order.updatedAt).getTime();
+            setTimerStartTime(startTime);
+        } else {
+            setTimerStartTime(null);
+        }
+    }, [order.status, order.updatedAt]);
 
-        const startTime = order.updatedAt
-            ? new Date(order.updatedAt).getTime()
-            : order.createdAt
-                ? new Date(order.createdAt).getTime()
-                : Date.now();
-
-        setTimerStartTime(startTime);
-        setTimerStarted(true);
-    }, [order.status, order.updatedAt, order.createdAt, timerStarted]);
-
-    // Countdown timer logic
+    // Countdown timer logic - only for confirmed orders
     useEffect(() => {
-        if (!timerStarted || !timerStartTime) return;
-        if (order.status === 'delivered' || order.status === 'cancelled') return;
+        if (!timerStartTime || order.status !== 'confirmed') return;
 
         const updateTimer = () => {
             const now = Date.now();
             const elapsed = Math.floor((now - timerStartTime) / 1000);
-            const remaining = Math.max(0, 600 - elapsed);
+            const remaining = Math.max(0, 600 - elapsed); // 10 minutes countdown
             setRemainingSeconds(remaining);
 
-            if (remaining === 0 && order.status === 'confirmed') {
+            // Auto-complete when timer reaches 0
+            if (remaining === 0) {
                 onStatusUpdate(order._id, 'delivered');
             }
         };
@@ -578,7 +576,7 @@ function OrderTicket({ order, onStatusUpdate, isUpdating }) {
         updateTimer();
         const interval = setInterval(updateTimer, 1000);
         return () => clearInterval(interval);
-    }, [timerStarted, timerStartTime, order._id, order.status, onStatusUpdate]);
+    }, [timerStartTime, order._id, order.status, onStatusUpdate]);
 
     const formatCountdown = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -586,63 +584,83 @@ function OrderTicket({ order, onStatusUpdate, isUpdating }) {
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
+    const getUserDisplayName = () => {
+        if (!order.userId) return 'Unknown User';
+        const { firstName, lastName, email } = order.userId;
+        if (firstName && lastName) {
+            return `${firstName} ${lastName}`;
+        }
+        return email || 'Unknown User';
+    };
+
     const items = Array.isArray(order.items) ? order.items : [];
 
     const getTimerColor = () => {
         if (remainingSeconds <= 60) return 'text-red-600 font-bold animate-pulse';
         if (remainingSeconds <= 180) return 'text-amber-600 font-semibold';
-        return 'text-slate-700';
-    };
-
-    const formatOrderTime = (timestamp) => {
-        if (!timestamp) return '--';
-        const date = new Date(timestamp);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return 'text-gray-600';
     };
 
     return (
         <Card
-            className="bg-white border border-slate-200 shadow-lg rounded-3xl overflow-hidden transition-all duration-200 mb-4"
-            padding="none"
+            className={`${statusConfig.cardBg} ${statusConfig.borderColor} border-2 shadow-sm hover:shadow-md transition-all duration-200`}
+            padding="md"
+            style={{ marginBottom: spacing.md }}
         >
-            <div className={`px-4 py-4 ${statusConfig.bgColor} ${statusConfig.borderColor} border-b`}>
-                <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                        <p className="text-[0.70rem] font-semibold tracking-[0.25em] uppercase text-slate-500">
-                            Order
-                        </p>
-                        <h3 className={`text-xl font-bold tracking-tight break-words ${statusConfig.textColor}`} style={{ fontSize: typography.fontSize['2xl'] }}>
-                            #{order.orderId}
-                        </h3>
-                    </div>
-                    <span className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ${statusConfig.textColor} ${statusConfig.cardBg} border border-current`}>
+            {/* Order Header */}
+            <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex-1 min-w-0">
+                    <h3 className={`text-lg font-bold tracking-tight break-words ${statusConfig.textColor}`} style={{ fontSize: typography.fontSize.lg }}>
+                        Order #{order.orderId}
+                    </h3>
+                    {/* Countdown Timer - Only show for confirmed orders */}
+                    {order.status === 'confirmed' && (
+                        <div className="flex items-center gap-2 mt-2">
+                            <div className={`text-sm font-mono ${getTimerColor()}`} style={{ fontSize: typography.fontSize.sm }}>
+                                {remainingSeconds > 0 ? formatCountdown(remainingSeconds) : '00:00'}
+                            </div>
+                            {remainingSeconds <= 60 && remainingSeconds > 0 && (
+                                <span className="text-xs text-red-500 font-medium animate-pulse" style={{ fontSize: typography.fontSize.xs }}>
+                                    EXPIRING
+                                </span>
+                            )}
+                        </div>
+                    )}
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${statusConfig.bgColor} ${statusConfig.textColor}`} style={{ fontSize: typography.fontSize.sm }}>
                         <StatusIcon className="w-4 h-4" />
                         {statusConfig.label}
                     </span>
                 </div>
-                <div className="mt-4 flex items-center justify-between gap-3 text-sm" style={{ color: 'var(--text-muted)', fontSize: typography.fontSize.sm }}>
-                    <span>{formatOrderTime(order.createdAt)}</span>
-                    {order.status === 'confirmed' ? (
-                        <span className={`font-semibold ${getTimerColor()}`}>{formatCountdown(remainingSeconds)}</span>
-                    ) : (
-                        <span>{order.status === 'pending' ? 'Pending' : 'Ready'}</span>
-                    )}
-                </div>
             </div>
 
-            <div className="p-4 bg-white">
+            {/* Customer Information */}
+            {order.userId && (
+                <div className="rounded-lg mb-4 p-3" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
+                    <div className="flex items-center gap-2 mb-2">
+                        <HiOutlineUser className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                        <p className="text-sm uppercase tracking-[0.15em] font-medium" style={{ color: 'var(--text-muted)', fontSize: typography.fontSize.sm }}>
+                            Customer
+                        </p>
+                    </div>
+                    <p className={`text-base font-semibold ${statusConfig.accentColor} truncate`} style={{ fontSize: typography.fontSize.base }}>
+                        {getUserDisplayName()}
+                    </p>
+                </div>
+            )}
+
+            {/* Order Items - Display all items in this order */}
+            <div className="rounded-lg mb-4 p-4" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
+                <p className="text-sm uppercase tracking-[0.15em] mb-3 font-medium" style={{ color: 'var(--text-muted)', fontSize: typography.fontSize.sm }}>Order Items</p>
                 <div className="space-y-3">
                     {items.map((item, index) => (
-                        <div
-                            key={item._id || index}
-                            className="pb-3"
-                            style={{ borderBottom: index < items.length - 1 ? '1px solid #e2e8f0' : 'none' }}
-                        >
-                            <p className="text-sm font-semibold text-slate-900" style={{ fontSize: typography.fontSize.sm }}>
+                        <div key={item._id || index} className="pb-3" style={{ borderBottom: index < items.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                            <p className={`text-base font-semibold ${statusConfig.accentColor} leading-tight`} style={{ fontSize: typography.fontSize.base }}>
                                 {item.quantity}x {item.productName}
                             </p>
                             {item.productDescription && (
-                                <p className="mt-1 text-xs text-slate-500" style={{ fontSize: typography.fontSize.xs }}>
+                                <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-muted)', fontSize: typography.fontSize.sm }}>
                                     {item.productDescription}
                                 </p>
                             )}
@@ -651,21 +669,26 @@ function OrderTicket({ order, onStatusUpdate, isUpdating }) {
                 </div>
             </div>
 
-            <div className="p-4 bg-slate-50 border-t border-slate-200">
+            {/* Action Buttons */}
+            <div className="space-y-3">
+                {/* Workflow: pending → confirmed → delivered */}
+
+                {/* Step 1: New Order → Start Preparing */}
                 {order.status === 'pending' && (
                     <Button
                         onClick={() => onStatusUpdate(order._id, 'confirmed')}
                         disabled={isUpdating}
                         variant="primary"
                         size="lg"
-                        className="w-full bg-slate-900 text-white hover:bg-slate-800 py-3"
+                        className={`w-full ${statusConfig.buttonColor} py-3`}
                         loading={isUpdating}
-                        style={{ fontSize: typography.fontSize.base, fontWeight: 600 }}
+                        style={{ fontSize: typography.fontSize.base, fontWeight: '600' }}
                     >
-                        {isUpdating ? 'Starting...' : 'Start'}
+                        {isUpdating ? 'Starting Preparation...' : 'Start Preparing'}
                     </Button>
                 )}
 
+                {/* Step 2: Preparing → Ready */}
                 {order.status === 'confirmed' && (
                     <div className="space-y-3">
                         <Button
@@ -673,22 +696,23 @@ function OrderTicket({ order, onStatusUpdate, isUpdating }) {
                             disabled={isUpdating}
                             variant="success"
                             size="lg"
-                            className="w-full bg-slate-900 text-white hover:bg-slate-800 py-3"
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 py-3"
                             loading={isUpdating}
-                            style={{ fontSize: typography.fontSize.base, fontWeight: 600 }}
+                            style={{ fontSize: typography.fontSize.base, fontWeight: '600' }}
                         >
-                            {isUpdating ? 'Finishing...' : 'Ready'}
+                            {isUpdating ? 'Marking Ready...' : 'Ready'}
                         </Button>
-                        <p className="text-center text-xs text-slate-500" style={{ fontSize: typography.fontSize.xs }}>
-                            Tap when the order is ready for pickup
+                        <p className="text-sm text-center" style={{ color: 'var(--text-muted)', fontSize: typography.fontSize.sm }}>
+                            Tap ready when this order is fully prepared
                         </p>
                     </div>
                 )}
 
+                {/* Step 3: Ready → Pickup */}
                 {order.status === 'delivered' && (
-                    <div className="rounded-2xl bg-emerald-50 p-3 text-center">
+                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-center">
                         <p className="text-sm font-semibold text-emerald-700" style={{ fontSize: typography.fontSize.sm }}>
-                            Ready for pickup
+                            Ready for customer pickup
                         </p>
                     </div>
                 )}
@@ -696,6 +720,5 @@ function OrderTicket({ order, onStatusUpdate, isUpdating }) {
         </Card>
     );
 }
-
 
 export default KitchenDisplaySystem;
