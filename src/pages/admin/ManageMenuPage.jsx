@@ -111,7 +111,7 @@ function ItemModal({ initial, categories, onSave, onClose }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!form.name.trim() || !form.price || !form.category) return;
+        if (!form.name.trim() || form.price === '' || !form.category) return;
         setSaving(true);
         await onSave({
             ...form,
@@ -273,8 +273,8 @@ function ManageMenuPage() {
             ]);
             setGrouped(groupedRes.data || []);
             setCategories(catsRes.data || []);
-        } catch {
-            // ignore
+        } catch (err) {
+            console.error('Failed to load menu data:', err);
         } finally {
             setIsLoading(false);
         }

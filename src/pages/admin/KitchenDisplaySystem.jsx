@@ -21,7 +21,7 @@ const KDS_STATUS_CONFIG = {
         icon: HiOutlineClock,
         bgColor: 'bg-red-50',
         cardBg: 'bg-white',
-        textColor: 'text-red-700',
+        textColor: 'text-red-700 whitespace-nowrap',
         accentColor: 'text-red-600',
         borderColor: 'border-red-200',
         buttonColor: 'bg-red-600 hover:bg-red-700',
@@ -102,6 +102,7 @@ const normalizeOrderToGrouped = (order) => {
         status: order.status || 'pending',
         createdAt: order.createdAt,
         updatedAt: order.updatedAt,
+        confirmedAt: order.confirmedAt ?? null,
         items: normalizedItems,
         totalAmount: normalizedItems.reduce((sum, item) => sum + (item.totalAmount || 0), 0),
     };
@@ -135,6 +136,16 @@ function KitchenDisplaySystem() {
                 ...(confirmedRes.data || []),
                 ...(deliveredRes.data || []),
             ];
+
+            // Seed cookingStartTimes from DB confirmedAt so the timer survives page refreshes
+            allOrders.forEach((order) => {
+                if (order.status === 'confirmed' && order.confirmedAt) {
+                    const id = order._id?.toString?.() ?? order._id;
+                    if (!cookingStartTimes.current[id]) {
+                        cookingStartTimes.current[id] = new Date(order.confirmedAt).getTime();
+                    }
+                }
+            });
 
             // Group orders by orderId and userId to create complete order tickets
             const groupedOrders = allOrders.reduce((acc, order) => {
@@ -235,6 +246,13 @@ function KitchenDisplaySystem() {
             console.log(`Order ID: ${data.orderId}`);
             console.log(`New Status: ${data.status}`);
             console.log(`Updated At: ${data.updatedAt}`);
+
+            // Sync the cooking start time from the authoritative DB timestamp so all
+            // clients (including those that just refreshed) share the same timer origin
+            if (data.status === 'confirmed' && data.confirmedAt) {
+                const id = data._id?.toString?.() ?? data._id;
+                cookingStartTimes.current[id] = new Date(data.confirmedAt).getTime();
+            }
 
             setOrders((prevOrders) => {
                 const updated = prevOrders
@@ -384,7 +402,6 @@ function KitchenDisplaySystem() {
             if (newStatus === 'confirmed') {
                 cookingStartTimes.current[orderId] = Date.now();
             }
-
             try {
                 console.log(`\nKDS: ORDER STATUS UPDATE REQUEST`);
                 console.log(`Order _id: ${orderId}, New Status: ${newStatus}`);
@@ -586,7 +603,10 @@ function OrderTicket({ order, onStatusUpdate, onAddItems, isUpdating, cookingSta
     useEffect(() => {
         if (order.status !== 'confirmed') return;
 
-        const startTime = cookingStartTimes.current[order._id] ?? Date.now();
+        // Priority: in-memory ref (set on click or seeded from DB) → DB confirmedAt → now
+        const startTime =
+            cookingStartTimes.current[order._id] ??
+            (order.confirmedAt ? new Date(order.confirmedAt).getTime() : Date.now());
 
         const updateTimer = () => {
             const elapsed = Math.floor((Date.now() - startTime) / 1000);

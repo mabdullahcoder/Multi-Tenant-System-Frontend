@@ -163,7 +163,7 @@ function ActionsDropdown({
                             {/* View Details */}
                             <button
                                 role="menuitem"
-                                onClick={() => { onViewDetails(order._id); onToggle(); }}
+                                onClick={() => { onViewDetails(order.orderId); onToggle(); }}
                                 className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm font-medium transition-colors duration-100"
                                 style={{ color: 'var(--text-primary)' }}
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
@@ -260,12 +260,8 @@ function ResponsiveOrderTable({
         }
     };
 
-    /* close on outside click */
-    useEffect(() => {
-        const handler = () => setOpenDropdown(null);
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, []);
+    // Dropdown close is handled inside ActionsDropdown via its own outside-click listener.
+    // A global handler here would race with portal clicks and swallow menu item clicks.
 
     const toggle = (id) => setOpenDropdown((prev) => (prev === id ? null : id));
 
@@ -525,7 +521,7 @@ function ResponsiveOrderTable({
                         {/* Card footer — actions */}
                         <div className="px-4 pb-4 flex items-center gap-2">
                             <button
-                                onClick={() => onViewDetails(order._id)}
+                                onClick={() => onViewDetails(order.orderId)}
                                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 min-h-[40px]"
                                 style={{ backgroundColor: 'rgba(59,130,246,0.08)', color: 'var(--primary)' }}
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(59,130,246,0.15)'}

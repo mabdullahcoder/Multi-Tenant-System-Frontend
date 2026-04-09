@@ -54,8 +54,6 @@ function ManageOrdersPage() {
     const [orderToDelete, setOrderToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    useEffect(() => { fetchOrders(); }, [statusFilter]);
-
     const fetchOrders = useCallback(async () => {
         setIsLoading(true);
         try {
@@ -71,6 +69,8 @@ function ManageOrdersPage() {
             setIsLoading(false);
         }
     }, [statusFilter, addNotification]);
+
+    useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
     /* SENIOR FIX: Separate socket listeners from data fetching to prevent infinite dependency loops */
     useEffect(() => {
