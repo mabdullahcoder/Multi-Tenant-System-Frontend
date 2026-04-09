@@ -495,7 +495,7 @@ function MyOrdersPage() {
                                         : 'You haven\'t placed any orders yet. Start by '}
                                     placing your first order.
                                 </p>
-                                <button
+                                {/* <button
                                     onClick={() => navigate('/user/place-order')}
                                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm min-h-[44px]"
                                     style={{ backgroundColor: 'var(--primary)', color: '#fff' }}
@@ -504,7 +504,7 @@ function MyOrdersPage() {
                                 >
                                     <HiOutlinePlus className="w-4 h-4" />
                                     Place Order
-                                </button>
+                                </button> */}
                             </>
                         )}
                     </div>

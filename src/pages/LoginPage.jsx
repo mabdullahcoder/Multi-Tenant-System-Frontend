@@ -43,17 +43,24 @@ function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div
+            className="min-h-screen flex items-center justify-center p-4"
+            style={{ backgroundColor: 'var(--bg-base)' }}
+        >
             <div className="w-full max-w-md">
                 {/* Card */}
-                <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+                <div
+                    className="rounded-2xl p-6 sm:p-8 border"
+                    style={{
+                        backgroundColor: 'var(--bg-surface)',
+                        borderColor: 'var(--border)',
+                        boxShadow: 'var(--shadow-xl)',
+                    }}
+                >
                     {/* Header */}
                     <div className="text-center mb-8">
-                        {/* <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                            <span className="text-white font-bold text-lg">🍽️</span>
-                        </div> */}
-                        <h1 className="text-3xl font-bold text-gray-900 mb-1">Welcome Back</h1>
-                        <p className="text-sm text-gray-600">Sign in to your account to continue</p>
+                        <h1 className="text-heading-2 mb-1">Welcome Back</h1>
+                        <p className="text-description">Sign in to your account to continue</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
@@ -61,7 +68,10 @@ function LoginPage() {
                         <div className="form-group">
                             <label className="label-base">Email Address</label>
                             <div className="relative">
-                                <HiOutlineAtSymbol className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <HiOutlineAtSymbol
+                                    className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
+                                    style={{ color: 'var(--text-muted)' }}
+                                />
                                 <input
                                     type="email"
                                     name="email"
@@ -72,14 +82,21 @@ function LoginPage() {
                                     placeholder="you@example.com"
                                 />
                             </div>
-                            {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
+                            {errors.email && (
+                                <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>
+                                    {errors.email}
+                                </p>
+                            )}
                         </div>
 
                         {/* Password Field */}
                         <div className="form-group">
                             <label className="label-base">Password</label>
                             <div className="relative">
-                                <HiOutlineLockClosed className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <HiOutlineLockClosed
+                                    className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
+                                    style={{ color: 'var(--text-muted)' }}
+                                />
                                 <input
                                     type="password"
                                     name="password"
@@ -90,14 +107,18 @@ function LoginPage() {
                                     placeholder="••••••••"
                                 />
                             </div>
-                            {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
+                            {errors.password && (
+                                <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>
+                                    {errors.password}
+                                </p>
+                            )}
                         </div>
 
                         {/* Submit Button */}
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="btn-lg btn-primary-solid w-full mt-6"
+                            className="btn-lg btn-primary-solid w-full mt-6 flex items-center justify-center gap-2"
                         >
                             {isLoading ? (
                                 <>
@@ -116,31 +137,32 @@ function LoginPage() {
                     {/* Divider */}
                     <div className="relative my-6">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-200" />
+                            <div className="w-full border-t" style={{ borderColor: 'var(--border)' }} />
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-white text-gray-500">or</span>
+                            <span
+                                className="px-3 text-sm"
+                                style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--text-muted)' }}
+                            >
+                                or
+                            </span>
                         </div>
                     </div>
 
                     {/* Sign Up Link */}
-                    <p className="text-center text-sm text-gray-600">
-                        Don't have an account?{' '}
+                    <p className="text-center text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        Don&apos;t have an account?{' '}
                         <button
                             onClick={() => navigate('/register')}
-                            className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+                            className="font-semibold transition-colors"
+                            style={{ color: 'var(--primary)' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--primary-light)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--primary)')}
                         >
                             Create one
                         </button>
                     </p>
                 </div>
-
-                {/* Security Badge */}
-                {/*
-                    <div className="text-center mt-6">
-                        <p className="text-xs text-gray-500">🔐 Your data is encrypted and secure</p>
-                    </div>
-                */}
             </div>
         </div>
     );

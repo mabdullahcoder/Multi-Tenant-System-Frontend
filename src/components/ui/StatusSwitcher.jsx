@@ -32,16 +32,14 @@ function StatusSwitcher({
             const rect = triggerRef.current.getBoundingClientRect();
             const spaceBelow = window.innerHeight - rect.bottom;
             const spaceAbove = rect.top;
-            const menuHeight = 280; // approximate max height
-
-            // If not enough space below, open upwards
+            const menuHeight = 280;
             const openUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
 
             setPopoverPos({
-                top: openUp ? rect.top + window.scrollY : rect.bottom + window.scrollY,
-                left: rect.left + window.scrollX,
+                top: openUp ? rect.top : rect.bottom,
+                left: rect.left,
                 width: rect.width,
-                openUp: openUp
+                openUp,
             });
         }
     };
@@ -160,18 +158,18 @@ function StatusSwitcher({
                             }}
                             transition={{ duration: 0.15, ease: "easeOut" }}
                             style={{
-                                position: 'absolute',
-                                top: popoverPos.top,
+                                position: 'fixed',
+                                top: popoverPos.openUp
+                                    ? popoverPos.top - 4
+                                    : popoverPos.top + 4,
                                 left: popoverPos.left,
                                 zIndex: 9999,
-                                transform: popoverPos.openUp ? 'translateY(-100%)' : 'none'
-                            }}
-                            className="w-52 rounded-xl shadow-2xl py-1.5 pointer-events-auto"
-                            style={{
+                                transform: popoverPos.openUp ? 'translateY(-100%)' : 'none',
                                 backgroundColor: 'var(--bg-surface)',
                                 border: '1px solid var(--border)',
                                 boxShadow: 'var(--shadow-xl)',
                             }}
+                            className="w-52 rounded-xl shadow-2xl py-1.5 pointer-events-auto"
                         >
                             {/* Header */}
                             <div className="px-3 pb-2 pt-1 mb-1" style={{ borderBottom: '1px solid var(--border)' }}>

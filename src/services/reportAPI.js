@@ -1,6 +1,5 @@
 /**
  * Report API Service
- * Handles report API calls
  */
 
 import apiClient from './apiService';
@@ -14,10 +13,7 @@ export const reportAPI = {
 
     // Get user reports
     getUserReports: async (page = 1, limit = 10) => {
-        const query = new URLSearchParams({
-            page,
-            limit,
-        });
+        const query = new URLSearchParams({ page, limit });
         const response = await apiClient.get(`/report/my-reports?${query}`);
         return response.data;
     },
@@ -36,11 +32,7 @@ export const reportAPI = {
 
     // Get all reports (admin)
     getAllReports: async (page = 1, limit = 10, filters = {}) => {
-        const query = new URLSearchParams({
-            page,
-            limit,
-            ...filters,
-        });
+        const query = new URLSearchParams({ page, limit, ...filters });
         const response = await apiClient.get(`/report?${query}`);
         return response.data;
     },
@@ -55,6 +47,57 @@ export const reportAPI = {
     getReportStats: async () => {
         const response = await apiClient.get('/report/stats');
         return response.data;
+    },
+
+    // ─── COMPREHENSIVE ANALYTICS ─────────────────────────────────────────────
+
+    // KPI Overview
+    getKPIOverview: async (period = 'monthly') => {
+        const response = await apiClient.get(`/report/analytics/kpi?period=${period}`);
+        return response.data;
+    },
+
+    // Orders Analytics
+    getOrdersAnalytics: async (filters = {}) => {
+        const query = new URLSearchParams(
+            Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== undefined && v !== ''))
+        );
+        const response = await apiClient.get(`/report/analytics/orders?${query}`);
+        return response.data;
+    },
+
+    // Menu Analytics
+    getMenuAnalytics: async (filters = {}) => {
+        const query = new URLSearchParams(
+            Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== undefined && v !== ''))
+        );
+        const response = await apiClient.get(`/report/analytics/menu?${query}`);
+        return response.data;
+    },
+
+    // Payment Analytics
+    getPaymentAnalytics: async (filters = {}) => {
+        const query = new URLSearchParams(
+            Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== undefined && v !== ''))
+        );
+        const response = await apiClient.get(`/report/analytics/payments?${query}`);
+        return response.data;
+    },
+
+    // Kitchen Analytics
+    getKitchenAnalytics: async (filters = {}) => {
+        const query = new URLSearchParams(
+            Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== undefined && v !== ''))
+        );
+        const response = await apiClient.get(`/report/analytics/kitchen?${query}`);
+        return response.data;
+    },
+
+    // Export Analytics (returns blob URL)
+    exportAnalytics: async (type, format = 'csv', filters = {}) => {
+        const params = new URLSearchParams({ type, format, ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)) });
+        const response = await apiClient.get(`/report/analytics/export?${params}`, { responseType: 'blob' });
+        return response;
     },
 };
 

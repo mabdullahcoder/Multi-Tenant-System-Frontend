@@ -103,7 +103,7 @@ function ManageOrdersPage() {
                 prevOrders.map((order) => {
                     if (order.orderId === data.orderId || order._id === data._id) {
                         const updatedOrder = { ...order, status: 'cancelled', updatedAt: data.updatedAt };
-                        console.log('✓ Admin: Order cancelled:', updatedOrder);
+                        console.log('Admin: Order cancelled:', updatedOrder);
                         return updatedOrder;
                     }
                     return order;

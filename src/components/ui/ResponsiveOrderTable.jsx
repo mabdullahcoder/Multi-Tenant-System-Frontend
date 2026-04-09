@@ -40,128 +40,129 @@ function ActionsDropdown({
     isOpen,
     onToggle,
     onViewDetails,
-    onStatusChange,
     onDelete,
-    getStatusConfig,
-    availableTransitions,
-    allStatuses = [],
     userRole,
-    align = 'right', // 'right' | 'left'
+    align = 'right',
 }) {
     const triggerRef = useRef(null);
     const popoverRef = useRef(null);
-    const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, openUp: false });
+    const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, openUp: false, ready: false });
 
-    // Calculate position when opening
-    const updatePosition = () => {
-        if (triggerRef.current && popoverRef.current) {
-            const triggerRect = triggerRef.current.getBoundingClientRect();
-            const menuHeight = 160;
-            const menuWidth = 208; // w-52 = 208px
+    const MENU_WIDTH = 208;  // w-52
+    const MENU_HEIGHT = userRole === 'super-admin' ? 112 : 56; // approx rendered height
+    const GAP = 4; // px gap between trigger and menu
 
-            const spaceBelow = window.innerHeight - triggerRect.bottom;
-            const spaceAbove = triggerRect.top;
-            const openUp = spaceBelow < menuHeight && spaceAbove > menuHeight;
+    const calcPosition = () => {
+        if (!triggerRef.current) return;
+        const r = triggerRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - r.bottom;
+        const openUp = spaceBelow < MENU_HEIGHT + GAP && r.top > MENU_HEIGHT + GAP;
 
-            // Calculate horizontal position based on alignment
-            let left = triggerRect.right + window.scrollX;
-            if (align === 'right') {
-                left = triggerRect.right + window.scrollX - menuWidth;
-            }
+        let left = r.right - MENU_WIDTH;
+        if (align === 'left') left = r.left;
+        left = Math.max(8, Math.min(window.innerWidth - MENU_WIDTH - 8, left));
 
-            // Ensure menu stays within viewport horizontally
-            const minLeft = 8;
-            const maxLeft = window.innerWidth - menuWidth - 8;
-            left = Math.max(minLeft, Math.min(maxLeft, left));
+        const top = openUp ? r.top - MENU_HEIGHT - GAP : r.bottom + GAP;
 
-            const top = openUp
-                ? triggerRect.top + window.scrollY - menuHeight
-                : triggerRect.bottom + window.scrollY;
-
-            setPopoverPos({
-                top,
-                left,
-                openUp,
-            });
-        }
+        setPopoverPos({ top, left, openUp, ready: true });
     };
 
-    // Handle outside click locally
+    // Recalculate on scroll / resize while open
     useEffect(() => {
         if (!isOpen) return;
-
-        const handleClickOutside = (e) => {
-            if (
-                triggerRef.current && !triggerRef.current.contains(e.target) &&
-                popoverRef.current && !popoverRef.current.contains(e.target)
-            ) {
-                onToggle();
-            }
-        };
-
-        const handleEscape = (e) => {
-            if (e.key === 'Escape') onToggle();
-        };
-
-        const handleRefresh = () => updatePosition();
-
-        document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('keydown', handleEscape);
-        window.addEventListener('scroll', handleRefresh, true);
-        window.addEventListener('resize', handleRefresh);
-
+        calcPosition();
+        const refresh = () => calcPosition();
+        window.addEventListener('scroll', refresh, true);
+        window.addEventListener('resize', refresh);
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('keydown', handleEscape);
-            window.removeEventListener('scroll', handleRefresh, true);
-            window.removeEventListener('resize', handleRefresh);
+            window.removeEventListener('scroll', refresh, true);
+            window.removeEventListener('resize', refresh);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen]);
+
+    // Close on outside click / Escape
+    useEffect(() => {
+        if (!isOpen) return;
+        const onMouseDown = (e) => {
+            if (
+                triggerRef.current?.contains(e.target) ||
+                popoverRef.current?.contains(e.target)
+            ) return;
+            onToggle();
+        };
+        const onKeyDown = (e) => { if (e.key === 'Escape') onToggle(); };
+        document.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('keydown', onKeyDown);
+        return () => {
+            document.removeEventListener('mousedown', onMouseDown);
+            document.removeEventListener('keydown', onKeyDown);
         };
     }, [isOpen, onToggle]);
 
-    const handleOpen = () => {
-        updatePosition();
+    const handleOpen = (e) => {
+        e.stopPropagation();
+        calcPosition();
         onToggle();
     };
 
     return (
         <div className="relative">
+            {/* Trigger button */}
             <button
                 ref={triggerRef}
                 onClick={handleOpen}
-                className="inline-flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200"
+                className="inline-flex items-center justify-center w-8 h-8 rounded-full transition-all duration-150"
                 style={{
                     color: isOpen ? 'var(--text-primary)' : 'var(--text-muted)',
                     backgroundColor: isOpen ? 'var(--bg-surface-3)' : 'transparent',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-surface-3)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-                onMouseLeave={(e) => { if (!isOpen) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; } }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--bg-surface-3)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                }}
+                onMouseLeave={(e) => {
+                    if (!isOpen) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = 'var(--text-muted)';
+                    }
+                }}
                 aria-label="Order actions"
+                aria-haspopup="true"
+                aria-expanded={isOpen}
             >
                 <HiOutlineDotsVertical className="w-4 h-4" />
             </button>
 
+            {/* Portal menu — renders at document.body so it's never clipped */}
             {ReactDOM.createPortal(
                 <AnimatePresence>
-                    {isOpen && (
+                    {isOpen && popoverPos.ready && (
                         <motion.div
                             ref={popoverRef}
-                            initial={{ opacity: 0, scale: 0.95, y: popoverPos.openUp ? 8 : -8 }}
+                            role="menu"
+                            initial={{ opacity: 0, scale: 0.95, y: popoverPos.openUp ? 4 : -4 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: popoverPos.openUp ? 8 : -8 }}
-                            transition={{ duration: 0.15, ease: "easeOut" }}
+                            exit={{ opacity: 0, scale: 0.95, y: popoverPos.openUp ? 4 : -4 }}
+                            transition={{ duration: 0.12, ease: 'easeOut' }}
                             style={{
                                 position: 'fixed',
                                 top: popoverPos.top,
                                 left: popoverPos.left,
+                                width: MENU_WIDTH,
                                 zIndex: 9999,
                                 backgroundColor: 'var(--bg-surface)',
                                 border: '1px solid var(--border)',
-                                boxShadow: 'var(--shadow-xl)',
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
+                                borderRadius: 12,
+                                paddingTop: 6,
+                                paddingBottom: 6,
+                                pointerEvents: 'auto',
                             }}
-                            className="w-52 rounded-xl py-1.5 pointer-events-auto"
                         >
                             {/* View Details */}
                             <button
+                                role="menuitem"
                                 onClick={() => { onViewDetails(order._id); onToggle(); }}
                                 className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm font-medium transition-colors duration-100"
                                 style={{ color: 'var(--text-primary)' }}
@@ -175,8 +176,9 @@ function ActionsDropdown({
                             {/* Delete — super-admin only */}
                             {userRole === 'super-admin' && (
                                 <>
-                                    <div className="my-1" style={{ borderTop: '1px solid var(--border-light)' }} />
+                                    <div className="my-1.5 mx-3" style={{ borderTop: '1px solid var(--border)' }} />
                                     <button
+                                        role="menuitem"
                                         onClick={() => { onDelete(order._id, order.orderId); onToggle(); }}
                                         className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm font-medium transition-colors duration-100"
                                         style={{ color: 'var(--danger)' }}
@@ -210,11 +212,43 @@ function ResponsiveOrderTable({
     allStatuses = [],
     userRole,
     deletingOrderId,
-    showCustomer = true, // admin sees customer; user doesn't need it
+    showCustomer = true,
 }) {
     const [openDropdown, setOpenDropdown] = useState(null);
     const [updatingOrders, setUpdatingOrders] = useState({});
     const { addNotification } = useUI();
+
+    // Normalise product display for both single-item (legacy) and multi-item orders
+    const getProductDisplay = (order) => {
+        if (order.items && order.items.length > 0) {
+            if (order.items.length === 1) {
+                return {
+                    name: order.items[0].productName,
+                    description: order.items[0].productDescription || '',
+                    quantity: order.items[0].quantity,
+                    unitPrice: order.items[0].price,
+                    isMulti: false,
+                };
+            }
+            const totalQty = order.items.reduce((s, i) => s + i.quantity, 0);
+            const names = order.items.map(i => `${i.productName} ×${i.quantity}`).join(', ');
+            return {
+                name: `${order.items.length} items`,
+                description: names,
+                quantity: totalQty,
+                unitPrice: null,
+                isMulti: true,
+            };
+        }
+        // Legacy single-item
+        return {
+            name: order.productName || '—',
+            description: order.productDescription || '',
+            quantity: order.quantity ?? '—',
+            unitPrice: order.price,
+            isMulti: false,
+        };
+    };
 
     const handleStatusUpdate = async (orderId, newStatus, currentStatus) => {
         setUpdatingOrders(prev => ({ ...prev, [orderId]: true }));
@@ -309,21 +343,33 @@ function ResponsiveOrderTable({
 
                             {/* Product */}
                             <div className="min-w-0">
-                                <p className="text-sm font-medium truncate leading-snug" style={{ color: 'var(--text-primary)' }}>
-                                    {order.productName}
-                                </p>
-                                {order.productDescription && (
-                                    <p className="text-xs truncate mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
-                                        {order.productDescription}
-                                    </p>
-                                )}
+                                {(() => {
+                                    const p = getProductDisplay(order);
+                                    return (
+                                        <>
+                                            <p className="text-sm font-medium truncate leading-snug" style={{ color: 'var(--text-primary)' }}>
+                                                {p.name}
+                                            </p>
+                                            {p.description && (
+                                                <p className="text-xs truncate mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
+                                                    {p.description}
+                                                </p>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </div>
 
                             {/* Qty */}
                             <div className="flex justify-center">
-                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-semibold" style={{ backgroundColor: 'var(--bg-surface-3)', color: 'var(--text-primary)' }}>
-                                    {order.quantity}
-                                </span>
+                                {(() => {
+                                    const p = getProductDisplay(order);
+                                    return (
+                                        <span className="inline-flex items-center justify-center min-w-[2rem] h-8 px-2 rounded-lg text-sm font-semibold" style={{ backgroundColor: 'var(--bg-surface-3)', color: 'var(--text-primary)' }}>
+                                            {p.quantity}
+                                        </span>
+                                    );
+                                })()}
                             </div>
 
                             {/* Amount */}
@@ -331,9 +377,17 @@ function ResponsiveOrderTable({
                                 <p className="text-sm font-bold leading-snug" style={{ color: 'var(--text-primary)' }}>
                                     ₨{order.totalAmount?.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </p>
-                                <p className="text-xs mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
-                                    ₨{(order.totalAmount / order.quantity)?.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ea.
-                                </p>
+                                {(() => {
+                                    const p = getProductDisplay(order);
+                                    if (!p.isMulti && p.unitPrice && p.quantity > 1) {
+                                        return (
+                                            <p className="text-xs mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
+                                                ₨{p.unitPrice?.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ea.
+                                            </p>
+                                        );
+                                    }
+                                    return null;
+                                })()}
                             </div>
 
                             {/* Status */}
@@ -359,11 +413,7 @@ function ResponsiveOrderTable({
                                     isOpen={openDropdown === order._id}
                                     onToggle={() => toggle(order._id)}
                                     onViewDetails={onViewDetails}
-                                    onStatusChange={onStatusChange}
                                     onDelete={onDelete}
-                                    getStatusConfig={getStatusConfig}
-                                    availableTransitions={transitions}
-                                    allStatuses={allStatuses}
                                     userRole={userRole}
                                     align="right"
                                 />
@@ -436,10 +486,17 @@ function ResponsiveOrderTable({
                             {/* Product */}
                             <div>
                                 <p className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Product</p>
-                                <p className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>{order.productName}</p>
-                                {order.productDescription && (
-                                    <p className="text-xs mt-0.5 line-clamp-1" style={{ color: 'var(--text-muted)' }}>{order.productDescription}</p>
-                                )}
+                                {(() => {
+                                    const p = getProductDisplay(order);
+                                    return (
+                                        <>
+                                            <p className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>{p.name}</p>
+                                            {p.description && (
+                                                <p className="text-xs mt-0.5 line-clamp-2" style={{ color: 'var(--text-muted)' }}>{p.description}</p>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </div>
 
                             {/* Meta row */}
@@ -454,7 +511,7 @@ function ResponsiveOrderTable({
                                 )}
                                 <div>
                                     <p className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Qty</p>
-                                    <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{order.quantity}</p>
+                                    <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{getProductDisplay(order).quantity}</p>
                                 </div>
                                 <div>
                                     <p className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Total</p>

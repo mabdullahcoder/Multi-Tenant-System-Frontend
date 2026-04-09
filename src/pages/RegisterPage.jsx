@@ -46,26 +46,36 @@ function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+        <div
+            className="min-h-screen flex items-center justify-center py-12 px-4"
+            style={{ backgroundColor: 'var(--bg-base)' }}
+        >
             <div className="w-full max-w-md">
                 {/* Card */}
-                <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+                <div
+                    className="rounded-2xl p-6 sm:p-8 border"
+                    style={{
+                        backgroundColor: 'var(--bg-surface)',
+                        borderColor: 'var(--border)',
+                        boxShadow: 'var(--shadow-xl)',
+                    }}
+                >
                     {/* Header */}
                     <div className="text-center mb-8">
-                        {/* <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                            <span className="text-white font-bold text-lg">🍽️</span>
-                        </div> */}
-                        <h1 className="text-3xl font-bold text-gray-900 mb-1">Get Started</h1>
-                        <p className="text-sm text-gray-600">Create your account to get started</p>
+                        <h1 className="text-heading-2 mb-1">Get Started</h1>
+                        <p className="text-description">Create your account to get started</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Name Fields - Side by side on larger screens */}
+                        {/* Name Fields */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="form-group">
                                 <label className="label-base">First Name</label>
                                 <div className="relative">
-                                    <HiOutlineUser className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <HiOutlineUser
+                                        className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
+                                        style={{ color: 'var(--text-muted)' }}
+                                    />
                                     <input
                                         type="text"
                                         name="firstName"
@@ -76,12 +86,19 @@ function RegisterPage() {
                                         placeholder="John"
                                     />
                                 </div>
-                                {errors.firstName && <p className="text-xs text-red-600 mt-1">{errors.firstName}</p>}
+                                {errors.firstName && (
+                                    <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>
+                                        {errors.firstName}
+                                    </p>
+                                )}
                             </div>
                             <div className="form-group">
                                 <label className="label-base">Last Name</label>
                                 <div className="relative">
-                                    <HiOutlineUser className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <HiOutlineUser
+                                        className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
+                                        style={{ color: 'var(--text-muted)' }}
+                                    />
                                     <input
                                         type="text"
                                         name="lastName"
@@ -92,7 +109,11 @@ function RegisterPage() {
                                         placeholder="Doe"
                                     />
                                 </div>
-                                {errors.lastName && <p className="text-xs text-red-600 mt-1">{errors.lastName}</p>}
+                                {errors.lastName && (
+                                    <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>
+                                        {errors.lastName}
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -100,7 +121,10 @@ function RegisterPage() {
                         <div className="form-group">
                             <label className="label-base">Email Address</label>
                             <div className="relative">
-                                <HiOutlineAtSymbol className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <HiOutlineAtSymbol
+                                    className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
+                                    style={{ color: 'var(--text-muted)' }}
+                                />
                                 <input
                                     type="email"
                                     name="email"
@@ -111,14 +135,21 @@ function RegisterPage() {
                                     placeholder="you@example.com"
                                 />
                             </div>
-                            {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
+                            {errors.email && (
+                                <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>
+                                    {errors.email}
+                                </p>
+                            )}
                         </div>
 
                         {/* Password Field */}
                         <div className="form-group">
                             <label className="label-base">Password</label>
                             <div className="relative">
-                                <HiOutlineLockClosed className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <HiOutlineLockClosed
+                                    className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
+                                    style={{ color: 'var(--text-muted)' }}
+                                />
                                 <input
                                     type="password"
                                     name="password"
@@ -129,14 +160,21 @@ function RegisterPage() {
                                     placeholder="••••••••"
                                 />
                             </div>
-                            {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
+                            {errors.password && (
+                                <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>
+                                    {errors.password}
+                                </p>
+                            )}
                         </div>
 
                         {/* Confirm Password Field */}
                         <div className="form-group">
                             <label className="label-base">Confirm Password</label>
                             <div className="relative">
-                                <HiOutlineLockClosed className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <HiOutlineLockClosed
+                                    className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
+                                    style={{ color: 'var(--text-muted)' }}
+                                />
                                 <input
                                     type="password"
                                     name="confirmPassword"
@@ -147,14 +185,18 @@ function RegisterPage() {
                                     placeholder="••••••••"
                                 />
                             </div>
-                            {errors.confirmPassword && <p className="text-xs text-red-600 mt-1">{errors.confirmPassword}</p>}
+                            {errors.confirmPassword && (
+                                <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>
+                                    {errors.confirmPassword}
+                                </p>
+                            )}
                         </div>
 
                         {/* Submit Button */}
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="btn-lg btn-primary-solid w-full mt-6"
+                            className="btn-lg btn-primary-solid w-full mt-6 flex items-center justify-center gap-2"
                         >
                             {isLoading ? (
                                 <>
@@ -173,34 +215,32 @@ function RegisterPage() {
                     {/* Divider */}
                     <div className="relative my-6">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-200" />
+                            <div className="w-full border-t" style={{ borderColor: 'var(--border)' }} />
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-white text-gray-500">or</span>
+                            <span
+                                className="px-3 text-sm"
+                                style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--text-muted)' }}
+                            >
+                                or
+                            </span>
                         </div>
                     </div>
 
                     {/* Sign In Link */}
-                    <p className="text-center text-sm text-gray-600">
+                    <p className="text-center text-sm" style={{ color: 'var(--text-secondary)' }}>
                         Already have an account?{' '}
                         <button
                             onClick={() => navigate('/login')}
-                            className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+                            className="font-semibold transition-colors"
+                            style={{ color: 'var(--primary)' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--primary-light)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--primary)')}
                         >
                             Sign in
                         </button>
                     </p>
                 </div>
-
-                {/* Terms Link */}
-                {/* <div className="text-center mt-6">
-                    <p className="text-xs text-gray-500">
-                        By signing up, you agree to our{' '}
-                        <a href="#" className="text-blue-600 hover:text-blue-700">Terms of Service</a>
-                        {' '}and{' '}
-                        <a href="#" className="text-blue-600 hover:text-blue-700">Privacy Policy</a>
-                    </p>
-                </div> */}
             </div>
         </div>
     );

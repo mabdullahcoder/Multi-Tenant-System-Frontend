@@ -193,7 +193,7 @@ function UserDashboard() {
                 </div>
 
                 {/* Action Button */}
-                <div className="flex justify-center sm:justify-end">
+                {/* <div className="flex justify-center sm:justify-end">
                     <Button
                         onClick={() => navigate('/user/place-order')}
                         variant="primary"
@@ -203,7 +203,7 @@ function UserDashboard() {
                     >
                         Place New Order
                     </Button>
-                </div>
+                </div> */}
             </div>
         </MainLayout>
     );
