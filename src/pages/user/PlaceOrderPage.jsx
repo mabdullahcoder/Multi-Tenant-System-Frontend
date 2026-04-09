@@ -1,6 +1,5 @@
-
-import { useState, useRef, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import MainLayout from '../../components/layouts/MainLayout';
 import { useUI } from '../../context/UIContext';
 import { useCart } from '../../context/CartContext';
@@ -16,9 +15,15 @@ import OrderSummary from './components/OrderSummary';
 
 function PlaceOrderPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { addNotification } = useUI();
-    const { items: cartItems, cartTotal, cartItemCount, addToCart, removeFromCart, updateQuantity, clearCart } = useCart();
+    const { items: cartItems, cartTotal, cartItemCount, addToCart, removeFromCart, updateQuantity, clearCart, seedCart } = useCart();
     const { user } = useAuth();
+
+    // ── Edit-mode state (admin appending items to an existing confirmed order) ──
+    // Passed via router state: { editMode: true, orderId, orderMongoId, existingItems, deliveryAddress }
+    const editContext = location.state?.editMode ? location.state : null;
+
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -30,13 +35,23 @@ function PlaceOrderPage() {
     const [receiptItems, setReceiptItems] = useState([]);
     const [receiptTotal, setReceiptTotal] = useState(0);
     const [receiptAddress, setReceiptAddress] = useState({});
-    const [deliveryAddress, setDeliveryAddress] = useState({
-        street: '',
-        city: '',
-        state: '',
-        country: '',
-        zipCode: '',
-    });
+    const [deliveryAddress, setDeliveryAddress] = useState(
+        editContext?.deliveryAddress || { street: '', city: '', state: '', country: '', zipCode: '' }
+    );
+
+    // Seed cart with existing order items when entering edit mode
+    useEffect(() => {
+        if (!editContext) return;
+        const seeded = (editContext.existingItems || []).map((item) => ({
+            id: item.productName, // use productName as stable id for menu items
+            name: item.productName,
+            description: item.productDescription || '',
+            price: item.price,
+            quantity: item.quantity,
+        }));
+        seedCart(seeded);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Sample menu data
     const menuCategories = useMemo(() => [
@@ -102,7 +117,50 @@ function PlaceOrderPage() {
         addNotification({ type: 'success', message: 'Order cleared' });
     }, [clearCart, addNotification]);
 
+    // ── Edit-mode checkout: append only the delta items ──
+    const handleAppendCheckout = async (e) => {
+        e.preventDefault();
+        if (cartItems.length === 0) {
+            addNotification({ type: 'error', message: 'No items in order!' });
+            return;
+        }
+        setIsProcessing(true);
+        try {
+            // Send the full current cart; backend computes the diff
+            const items = cartItems.map((item) => ({
+                productName: item.name,
+                productDescription: item.description || '',
+                quantity: item.quantity,
+                price: item.price,
+                subtotal: item.price * item.quantity,
+            }));
+
+            const response = await orderAPI.appendItems(editContext.orderMongoId, items);
+
+            clearCart();
+
+            addNotification({
+                type: 'success',
+                message: `Items added to order #${editContext.orderId} successfully!`,
+            });
+
+            // Navigate back to KDS
+            navigate('/admin/kitchen-display');
+        } catch (error) {
+            console.error('Append items error:', error);
+            addNotification({
+                type: 'error',
+                message: error.response?.data?.message || 'Failed to add items to order',
+            });
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    // ── Normal checkout: create a new order ──
     const handleCheckout = async (e) => {
+        if (editContext) return handleAppendCheckout(e);
+
         e.preventDefault();
         if (cartItems.length === 0) {
             addNotification({ type: 'error', message: 'No items in order!' });
@@ -114,7 +172,6 @@ function PlaceOrderPage() {
         }
         setIsProcessing(true);
         try {
-            // FIX: Create a SINGLE order with MULTIPLE items instead of multiple orders
             const items = cartItems.map((item) => ({
                 productName: item.name,
                 productDescription: item.description || '',
@@ -123,14 +180,7 @@ function PlaceOrderPage() {
                 subtotal: item.price * item.quantity,
             }));
 
-            const orderData = {
-                items, // Send all items in one array
-                deliveryAddress: { ...deliveryAddress },
-            };
-
-            console.log('PlaceOrderPage - Checkout data:', JSON.stringify(orderData, null, 2));
-
-            // Single API call for entire order
+            const orderData = { items, deliveryAddress: { ...deliveryAddress } };
             const response = await orderAPI.createOrder(orderData);
             const createdOrder = response.data;
 
@@ -140,17 +190,17 @@ function PlaceOrderPage() {
             const orderId = createdOrder._id || createdOrder.orderId;
 
             clearCart();
-            setOrderCount(1); // Now we only have 1 order
+            setOrderCount(1);
             setReceiptItems(snapshotItems);
             setReceiptTotal(snapshotTotal);
             setReceiptAddress(snapshotAddress);
-            setPlacedOrderIds([orderId]); // Single order ID
+            setPlacedOrderIds([orderId]);
             setPlacedAt(new Date());
             setShowReceipt(true);
 
             addNotification({
                 type: 'success',
-                message: `Order placed successfully with ${cartItems.length} items!`
+                message: `Order placed successfully with ${cartItems.length} items!`,
             });
         } catch (error) {
             console.error('Checkout error:', error);
@@ -180,7 +230,6 @@ function PlaceOrderPage() {
         } else {
             currentProducts = products[selectedCategory] || [];
         }
-
         return currentProducts.filter(product =>
             product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             product.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -189,9 +238,25 @@ function PlaceOrderPage() {
 
     return (
         <MainLayout fullScreen={true}>
-            <div className="flex-1 bg-gray-50 overflow-hidden flex flex-col lg:flex-row min-h-0">
+            {/* Edit-mode banner */}
+            {editContext && (
+                <div className="flex items-center gap-3 px-4 py-2 bg-blue-600 text-white text-sm font-medium">
+                    <span>
+                        Editing Order <strong>#{editContext.orderId}</strong> — add items to the existing order.
+                        Only quantities above the current order will be appended.
+                    </span>
+                    <button
+                        onClick={() => { clearCart(); navigate('/admin/kitchen-display'); }}
+                        className="ml-auto text-white/80 hover:text-white underline text-xs"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            )}
+
+            <div className="flex-1 overflow-hidden flex flex-col lg:flex-row min-h-0" style={{ backgroundColor: 'var(--bg-base)' }}>
                 {/* LEFT SIDE - Menu Section */}
-                <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden min-h-0">
+                <div className="flex-1 flex flex-col overflow-hidden min-h-0" style={{ backgroundColor: 'var(--bg-base)' }}>
                     <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
                     <CategoryTabs
                         menuCategories={menuCategories}
@@ -199,7 +264,6 @@ function PlaceOrderPage() {
                         setSelectedCategory={setSelectedCategory}
                     />
 
-                    {/* Products Grid Section */}
                     <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-6 py-3 sm:py-4 md:py-6 scrollbar-thin">
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 pb-4">
                             {filteredProducts.map((product) => (
@@ -208,7 +272,7 @@ function PlaceOrderPage() {
                         </div>
                         {filteredProducts.length === 0 && (
                             <div className="text-center py-8 sm:py-12">
-                                <p className="text-xs sm:text-sm text-gray-500">No items found for this search or category</p>
+                                <p className="text-xs sm:text-sm" style={{ color: 'var(--text-muted)' }}>No items found for this search or category</p>
                             </div>
                         )}
                     </div>
@@ -227,61 +291,71 @@ function PlaceOrderPage() {
                     handleCheckout={handleCheckout}
                     handlePrintReceipt={handlePrintReceipt}
                     isProcessing={isProcessing}
+                    editMode={!!editContext}
                 />
             </div>
 
-            {/* Modals */}
-            <ReceiptModal
-                isOpen={showReceipt}
-                onClose={() => {
-                    setShowReceipt(false);
-                    if (placedOrderIds.length > 0) setShowSuccessModal(true);
-                }}
-                cartItems={receiptItems}
-                cartTotal={receiptTotal}
-                cartItemCount={receiptItems?.reduce((s, i) => s + (i.quantity || 0), 0) || 0}
-                deliveryAddress={receiptAddress}
-                user={user}
-                orderIds={placedOrderIds}
-                placedAt={placedAt}
-            />
+            {/* Modals — only shown in normal (non-edit) mode */}
+            {!editContext && (
+                <>
+                    <ReceiptModal
+                        isOpen={showReceipt}
+                        onClose={() => {
+                            setShowReceipt(false);
+                            if (placedOrderIds.length > 0) setShowSuccessModal(true);
+                        }}
+                        cartItems={receiptItems}
+                        cartTotal={receiptTotal}
+                        cartItemCount={receiptItems?.reduce((s, i) => s + (i.quantity || 0), 0) || 0}
+                        deliveryAddress={receiptAddress}
+                        user={user}
+                        orderIds={placedOrderIds}
+                        placedAt={placedAt}
+                    />
 
-            {showSuccessModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center animate-in fade-in zoom-in duration-300">
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-3">Order Successful!</h2>
-                        <p className="text-gray-600 mb-6">
-                            Your order has been placed successfully. You can track its status in the "My Orders" section.
-                        </p>
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={() => {
-                                    setShowSuccessModal(false);
-                                    navigate('/user/my-orders', { state: { refresh: true } });
-                                }}
-                                className="w-full bg-blue-600 hove:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all active:scale-95"
+                    {showSuccessModal && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div
+                                className="rounded-2xl shadow-2xl max-w-md w-full p-8 text-center animate-fade-in"
+                                style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
                             >
-                                View My Orders
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setShowSuccessModal(false);
-                                    setDeliveryAddress({ street: '', city: '', state: '', country: '', zipCode: '' });
-                                }}
-                                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-lg transition-all active:scale-95"
-                            >
-                                Add More Items
-                            </button>
+                                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: 'rgba(16,185,129,0.12)' }}>
+                                    <svg className="w-10 h-10" style={{ color: 'var(--success)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Order Successful!</h2>
+                                <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
+                                    Your order has been placed successfully. You can track its status in the "My Orders" section.
+                                </p>
+                                <div className="flex flex-col gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setShowSuccessModal(false);
+                                            navigate('/user/my-orders', { state: { refresh: true } });
+                                        }}
+                                        className="w-full font-semibold py-3 rounded-lg shadow-md transition-all active:scale-95 min-h-[44px]"
+                                        style={{ backgroundColor: 'var(--primary)', color: '#fff' }}
+                                    >
+                                        View My Orders
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowSuccessModal(false);
+                                            setDeliveryAddress({ street: '', city: '', state: '', country: '', zipCode: '' });
+                                        }}
+                                        className="w-full font-semibold py-3 rounded-lg transition-all active:scale-95 min-h-[44px]"
+                                        style={{ backgroundColor: 'var(--bg-surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                                    >
+                                        Add More Items
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    )}
+                </>
             )}
-        </MainLayout >
+        </MainLayout>
     );
 }
 

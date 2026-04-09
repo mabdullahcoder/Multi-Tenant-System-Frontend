@@ -3,12 +3,17 @@ function Button({ children, variant = 'primary', size = 'md', disabled = false, 
 
     const variants = {
         primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-sm active:bg-blue-800',
-        secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-400 active:bg-gray-300',
+        secondary: 'focus:ring-gray-400 active:scale-95',
         danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-sm active:bg-red-800',
         success: 'bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500 shadow-sm active:bg-emerald-800',
         outline: 'border border-blue-500 text-blue-600 hover:bg-blue-500/10 focus:ring-blue-500 active:bg-blue-500/20',
         ghost: 'hover:bg-white/10 focus:ring-gray-400 active:bg-white/20',
     };
+
+    // secondary uses CSS vars so it adapts to dark mode
+    const secondaryStyle = variant === 'secondary'
+        ? { backgroundColor: 'var(--bg-surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border)' }
+        : {};
 
     const sizes = {
         sm: 'px-3 py-1.5 text-xs min-h-[36px]',
@@ -20,6 +25,7 @@ function Button({ children, variant = 'primary', size = 'md', disabled = false, 
         <button
             disabled={disabled || loading}
             className={`${base} ${variants[variant] || variants.primary} ${sizes[size] || sizes.md} ${className}`}
+            style={secondaryStyle}
             {...props}
         >
             {loading && (

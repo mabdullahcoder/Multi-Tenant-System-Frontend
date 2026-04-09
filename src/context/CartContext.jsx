@@ -71,6 +71,11 @@ function cartReducer(state, action) {
         case 'CLEAR_CART_ERROR':
             return { ...state, error: null };
 
+        case 'SEED_CART':
+            // Replace cart with a pre-populated item list (admin edit-mode)
+            saveCart(action.payload);
+            return { ...state, items: action.payload, error: null };
+
         default:
             return state;
     }
@@ -87,6 +92,7 @@ export function CartProvider({ children }) {
     const clearCart = () => dispatch({ type: 'CLEAR_CART' });
     const setCartError = (msg) => dispatch({ type: 'SET_CART_ERROR', payload: msg });
     const clearCartError = () => dispatch({ type: 'CLEAR_CART_ERROR' });
+    const seedCart = (items) => dispatch({ type: 'SEED_CART', payload: items });
 
     const cartTotal = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const cartItemCount = state.items.reduce((sum, i) => sum + i.quantity, 0);
@@ -97,7 +103,7 @@ export function CartProvider({ children }) {
             cartTotal,
             cartItemCount,
             addToCart, removeFromCart, updateQuantity,
-            clearCart, setCartError, clearCartError,
+            clearCart, setCartError, clearCartError, seedCart,
         }}>
             {children}
         </CartContext.Provider>

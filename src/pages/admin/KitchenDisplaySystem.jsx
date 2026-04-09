@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/layouts/MainLayout';
 import { useSocket } from '../../context/SocketContext';
 import { useUI } from '../../context/UIContext';
 import { orderAPI } from '../../services/orderAPI';
-import { typography } from '../../config/theme';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import StatCard from '../../components/ui/StatCard';
@@ -110,6 +110,7 @@ const normalizeOrderToGrouped = (order) => {
 function KitchenDisplaySystem() {
     const socket = useSocket();
     const { addNotification } = useUI();
+    const navigate = useNavigate();
 
     const [orders, setOrders] = useState([]);
     const [isUpdating, setIsUpdating] = useState({});
@@ -294,15 +295,38 @@ function KitchenDisplaySystem() {
             });
         };
 
+        const handleOrderItemsAppended = (data) => {
+            console.log('KDS: Items appended to order:', data.orderId);
+            setOrders((prevOrders) =>
+                prevOrders.map((order) => {
+                    if (order._id === data._id || order.orderId === data.orderId) {
+                        return {
+                            ...order,
+                            items: data.items,
+                            totalAmount: data.totalAmount,
+                            updatedAt: data.updatedAt,
+                        };
+                    }
+                    return order;
+                })
+            );
+            addNotification({
+                type: 'info',
+                message: `${data.deltaItems?.length || 0} item(s) added to order #${data.orderId}`,
+            });
+        };
+
         // Listen to admin panel events (includes new orders from all users)
         socket.on('orderCreated', handleNewOrder);
         socket.on('orderStatusUpdated', handleOrderStatusUpdate);
         socket.on('orderCancelled', handleOrderCancelled);
+        socket.on('orderItemsAppended', handleOrderItemsAppended);
 
         socketListenersRef.current = {
             handleNewOrder,
             handleOrderStatusUpdate,
             handleOrderCancelled,
+            handleOrderItemsAppended,
         };
 
         console.log('✓ KDS: Socket listeners registered');
@@ -311,6 +335,7 @@ function KitchenDisplaySystem() {
             socket.off('orderCreated', handleNewOrder);
             socket.off('orderStatusUpdated', handleOrderStatusUpdate);
             socket.off('orderCancelled', handleOrderCancelled);
+            socket.off('orderItemsAppended', handleOrderItemsAppended);
             console.log('KDS: Socket listeners removed');
         };
     }, [socket, addNotification]);
@@ -337,6 +362,19 @@ function KitchenDisplaySystem() {
             console.log('Notification sound not available:', err.message);
         }
     };
+
+    // Navigate to PlaceOrderPage in edit mode to append items to a confirmed order
+    const handleAddItems = useCallback((order) => {
+        navigate('/user/place-order', {
+            state: {
+                editMode: true,
+                orderId: order.orderId,
+                orderMongoId: order._id,
+                existingItems: order.items || [],
+                deliveryAddress: order.deliveryAddress || {},
+            },
+        });
+    }, [navigate]);
 
     const handleStatusUpdate = useCallback(
         async (orderId, newStatus) => {
@@ -397,16 +435,14 @@ function KitchenDisplaySystem() {
 
     return (
         <MainLayout>
-            <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+            <div className="min-h-screen py-6 sm:py-1 px-0">
                 {/* Header */}
-                <div className="mb-8">
-                    <div className="flex flex-col gap-4 mb-6">
+                <div className="mb-6 sm:mb-8">
+                    <div className="flex flex-col gap-3 mb-5">
                         <div>
-                            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)', fontSize: typography.fontSize['4xl'] }}>
-                                Kitchen Display System
-                            </h1>
-                            <p className="mt-3 max-w-2xl text-sm sm:text-base" style={{ color: 'var(--text-muted)', fontSize: typography.fontSize.base }}>
-                                Real-time order management for kitchen operations using your admin layout and color scheme.
+                            <h1 className="text-heading-2">Kitchen Display System</h1>
+                            <p className="text-description mt-1">
+                                Real-time order management for kitchen operations.
                             </p>
                         </div>
                     </div>
@@ -441,23 +477,24 @@ function KitchenDisplaySystem() {
                 </div>
 
                 {/* Orders Display - Kanban Board Style */}
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {/* New Orders Column */}
                     <div className="lg:col-span-1">
                         <Card className={`${KDS_STATUS_CONFIG.pending.borderColor} ${KDS_STATUS_CONFIG.pending.bgColor}`} padding="lg">
-                            <h2 className={`text-xl font-bold mb-4 flex items-center gap-2 ${KDS_STATUS_CONFIG.pending.textColor}`} style={{ fontSize: typography.fontSize.xl }}>
+                            <h2 className={`text-lg font-bold mb-4 flex items-center gap-2 ${KDS_STATUS_CONFIG.pending.textColor}`}>
                                 <KDS_STATUS_CONFIG.pending.icon className="w-5 h-5" />
                                 New Orders ({pendingOrders.length})
                             </h2>
                             <div className="space-y-4 min-h-96">
                                 {pendingOrders.length === 0 ? (
-                                    <div className="text-center py-8" style={{ color: 'var(--text-muted)', fontSize: typography.fontSize.base }}>No new orders</div>
+                                    <div className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>No new orders</div>
                                 ) : (
                                     pendingOrders.map((order) => (
                                         <OrderTicket
                                             key={order._id}
                                             order={order}
                                             onStatusUpdate={handleStatusUpdate}
+                                            onAddItems={handleAddItems}
                                             isUpdating={isUpdating[order._id]}
                                             cookingStartTimes={cookingStartTimes}
                                         />
@@ -470,19 +507,20 @@ function KitchenDisplaySystem() {
                     {/* Confirmed Orders Column */}
                     <div className="lg:col-span-1">
                         <Card className={`${KDS_STATUS_CONFIG.confirmed.borderColor} ${KDS_STATUS_CONFIG.confirmed.bgColor}`} padding="lg">
-                            <h2 className={`text-xl font-bold mb-4 flex items-center gap-2 ${KDS_STATUS_CONFIG.confirmed.textColor}`} style={{ fontSize: typography.fontSize.xl }}>
+                            <h2 className={`text-lg font-bold mb-4 flex items-center gap-2 ${KDS_STATUS_CONFIG.confirmed.textColor}`}>
                                 <KDS_STATUS_CONFIG.confirmed.icon className="w-5 h-5" />
                                 Confirmed ({confirmedOrders.length})
                             </h2>
                             <div className="space-y-4 min-h-96">
                                 {confirmedOrders.length === 0 ? (
-                                    <div className="text-center py-8" style={{ color: 'var(--text-muted)', fontSize: typography.fontSize.base }}>No confirmed orders</div>
+                                    <div className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>No confirmed orders</div>
                                 ) : (
                                     confirmedOrders.map((order) => (
                                         <OrderTicket
                                             key={order._id}
                                             order={order}
                                             onStatusUpdate={handleStatusUpdate}
+                                            onAddItems={handleAddItems}
                                             isUpdating={isUpdating[order._id]}
                                             cookingStartTimes={cookingStartTimes}
                                         />
@@ -495,19 +533,20 @@ function KitchenDisplaySystem() {
                     {/* Ready for Pickup Column */}
                     <div className="lg:col-span-1">
                         <Card className={`${KDS_STATUS_CONFIG.delivered.borderColor} ${KDS_STATUS_CONFIG.delivered.bgColor}`} padding="lg">
-                            <h2 className={`text-xl font-bold mb-4 flex items-center gap-2 ${KDS_STATUS_CONFIG.delivered.textColor}`} style={{ fontSize: typography.fontSize.xl }}>
+                            <h2 className={`text-lg font-bold mb-4 flex items-center gap-2 ${KDS_STATUS_CONFIG.delivered.textColor}`}>
                                 <KDS_STATUS_CONFIG.delivered.icon className="w-5 h-5" />
                                 Ready for Pickup ({readyOrders.length})
                             </h2>
                             <div className="space-y-4 min-h-96">
                                 {readyOrders.length === 0 ? (
-                                    <div className="text-center py-8" style={{ color: 'var(--text-muted)', fontSize: typography.fontSize.base }}>No orders ready yet</div>
+                                    <div className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>No orders ready yet</div>
                                 ) : (
                                     readyOrders.map((order) => (
                                         <OrderTicket
                                             key={order._id}
                                             order={order}
                                             onStatusUpdate={handleStatusUpdate}
+                                            onAddItems={handleAddItems}
                                             isUpdating={isUpdating[order._id]}
                                             cookingStartTimes={cookingStartTimes}
                                         />
@@ -537,7 +576,7 @@ function KitchenDisplaySystem() {
  * OrderTicket Component - Displays grouped order as a single ticket
  * Shows all items from one customer's order in one cohesive ticket
  */
-function OrderTicket({ order, onStatusUpdate, isUpdating, cookingStartTimes }) {
+function OrderTicket({ order, onStatusUpdate, onAddItems, isUpdating, cookingStartTimes }) {
     const statusConfig = KDS_STATUS_CONFIG[order.status] || KDS_STATUS_CONFIG.pending;
     const StatusIcon = statusConfig.icon;
     const [remainingSeconds, setRemainingSeconds] = useState(600);
@@ -586,25 +625,26 @@ function OrderTicket({ order, onStatusUpdate, isUpdating, cookingStartTimes }) {
 
     return (
         <Card
-            className="bg-white border border-slate-200 shadow-lg rounded-3xl overflow-hidden transition-all duration-200 mb-4"
+            className="border shadow-md rounded-2xl overflow-hidden transition-all duration-200 mb-4"
+            style={{ borderColor: 'var(--border)' }}
             padding="none"
         >
             <div className={`px-4 py-4 ${statusConfig.bgColor} ${statusConfig.borderColor} border-b`}>
                 <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                        <p className="text-[0.70rem] font-semibold tracking-[0.25em] uppercase text-slate-500">
+                        <p className="text-[0.70rem] font-semibold tracking-[0.25em] uppercase" style={{ color: 'var(--text-muted)' }}>
                             Order
                         </p>
-                        <h3 className={`text-xl font-bold tracking-tight break-words ${statusConfig.textColor}`} style={{ fontSize: typography.fontSize['2xl'] }}>
+                        <h3 className={`text-xl font-bold tracking-tight break-words ${statusConfig.textColor}`}>
                             #{order.orderId}
                         </h3>
                     </div>
-                    <span className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ${statusConfig.textColor} ${statusConfig.cardBg} border border-current`}>
-                        <StatusIcon className="w-4 h-4" />
+                    <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold ${statusConfig.textColor} ${statusConfig.cardBg} border border-current`}>
+                        <StatusIcon className="w-3.5 h-3.5" />
                         {statusConfig.label}
                     </span>
                 </div>
-                <div className="mt-4 flex items-center justify-between gap-3 text-sm" style={{ color: 'var(--text-muted)', fontSize: typography.fontSize.sm }}>
+                <div className="mt-3 flex items-center justify-between gap-3 text-sm" style={{ color: 'var(--text-muted)' }}>
                     <span>{formatOrderTime(order.createdAt)}</span>
                     {order.status === 'confirmed' ? (
                         <span className={`font-semibold ${getTimerColor()}`}>{formatCountdown(remainingSeconds)}</span>
@@ -614,19 +654,19 @@ function OrderTicket({ order, onStatusUpdate, isUpdating, cookingStartTimes }) {
                 </div>
             </div>
 
-            <div className="p-4 bg-white">
+            <div className="p-4" style={{ backgroundColor: 'var(--bg-surface)' }}>
                 <div className="space-y-3">
                     {items.map((item, index) => (
                         <div
                             key={item._id || index}
                             className="pb-3"
-                            style={{ borderBottom: index < items.length - 1 ? '1px solid #e2e8f0' : 'none' }}
+                            style={{ borderBottom: index < items.length - 1 ? '1px solid var(--border-light)' : 'none' }}
                         >
-                            <p className="text-sm font-semibold text-slate-900" style={{ fontSize: typography.fontSize.sm }}>
+                            <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                                 {item.quantity}x {item.productName}
                             </p>
                             {item.productDescription && (
-                                <p className="mt-1 text-xs text-slate-500" style={{ fontSize: typography.fontSize.xs }}>
+                                <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>
                                     {item.productDescription}
                                 </p>
                             )}
@@ -635,19 +675,29 @@ function OrderTicket({ order, onStatusUpdate, isUpdating, cookingStartTimes }) {
                 </div>
             </div>
 
-            <div className="p-4 bg-slate-50 border-t border-slate-200">
+            <div className="p-4" style={{ backgroundColor: 'var(--bg-surface-2)', borderTop: '1px solid var(--border)' }}>
                 {order.status === 'pending' && (
-                    <Button
-                        onClick={() => onStatusUpdate(order._id, 'confirmed')}
-                        disabled={isUpdating}
-                        variant="primary"
-                        size="lg"
-                        className="w-full bg-slate-900 text-white hover:bg-slate-800 py-3"
-                        loading={isUpdating}
-                        style={{ fontSize: typography.fontSize.base, fontWeight: 600 }}
-                    >
-                        {isUpdating ? 'Starting...' : 'Start'}
-                    </Button>
+                    <div className="space-y-2">
+                        <Button
+                            onClick={() => onStatusUpdate(order._id, 'confirmed')}
+                            disabled={isUpdating}
+                            variant="primary"
+                            size="lg"
+                            className="w-full"
+                            loading={isUpdating}
+                        >
+                            {isUpdating ? 'Starting...' : 'Start'}
+                        </Button>
+                        <Button
+                            onClick={() => onAddItems(order)}
+                            disabled={isUpdating}
+                            variant="secondary"
+                            size="md"
+                            className="w-full"
+                        >
+                            + Add Items
+                        </Button>
+                    </div>
                 )}
 
                 {order.status === 'confirmed' && (
@@ -657,21 +707,29 @@ function OrderTicket({ order, onStatusUpdate, isUpdating, cookingStartTimes }) {
                             disabled={isUpdating}
                             variant="success"
                             size="lg"
-                            className="w-full bg-slate-900 text-white hover:bg-slate-800 py-3"
+                            className="w-full"
                             loading={isUpdating}
-                            style={{ fontSize: typography.fontSize.base, fontWeight: 600 }}
                         >
                             {isUpdating ? 'Finishing...' : 'Ready'}
                         </Button>
-                        <p className="text-center text-xs text-slate-500" style={{ fontSize: typography.fontSize.xs }}>
+                        <Button
+                            onClick={() => onAddItems(order)}
+                            disabled={isUpdating}
+                            variant="secondary"
+                            size="md"
+                            className="w-full"
+                        >
+                            + Add Items
+                        </Button>
+                        <p className="text-center text-xs" style={{ color: 'var(--text-muted)' }}>
                             Tap when the order is ready for pickup
                         </p>
                     </div>
                 )}
 
                 {order.status === 'delivered' && (
-                    <div className="rounded-2xl bg-emerald-50 p-3 text-center">
-                        <p className="text-sm font-semibold text-emerald-700" style={{ fontSize: typography.fontSize.sm }}>
+                    <div className="rounded-xl p-3 text-center" style={{ backgroundColor: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)' }}>
+                        <p className="text-sm font-semibold" style={{ color: 'var(--success)' }}>
                             Ready for pickup
                         </p>
                     </div>

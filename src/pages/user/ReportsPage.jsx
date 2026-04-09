@@ -127,12 +127,8 @@ function ReportsPage() {
         <MainLayout>
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 transition-colors">
-                        Reports
-                    </h1>
-                    <p className="text-gray-600 text-sm mt-1 transition-colors">
-                        Generate and manage your reports
-                    </p>
+                    <h1 className="text-heading-2">Reports</h1>
+                    <p className="text-description mt-1">Generate and manage your reports</p>
                 </div>
 
                 {/* Generate Report */}
@@ -178,32 +174,32 @@ function ReportsPage() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             {/* Start Date */}
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2 transition-colors">
-                                    Start Date <span className="text-gray-400 font-normal">(Optional)</span>
+                                <label className="label-base block mb-1.5">
+                                    Start Date <span className="font-normal" style={{ color: 'var(--text-muted)' }}>(Optional)</span>
                                 </label>
                                 <input
                                     type="date"
                                     value={filters.startDate}
                                     onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900"
+                                    className="input-base"
                                 />
-                                <p className="text-xs text-gray-500 mt-1.5 transition-colors">
+                                <p className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
                                     Filter data from this date onwards
                                 </p>
                             </div>
 
                             {/* End Date */}
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2 transition-colors">
-                                    End Date <span className="text-gray-400 font-normal">(Optional)</span>
+                                <label className="label-base block mb-1.5">
+                                    End Date <span className="font-normal" style={{ color: 'var(--text-muted)' }}>(Optional)</span>
                                 </label>
                                 <input
                                     type="date"
                                     value={filters.endDate}
                                     onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900"
+                                    className="input-base"
                                 />
-                                <p className="text-xs text-gray-500 mt-1.5 transition-colors">
+                                <p className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
                                     Filter data up to this date
                                 </p>
                             </div>

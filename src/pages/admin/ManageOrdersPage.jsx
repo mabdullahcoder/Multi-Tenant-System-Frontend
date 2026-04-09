@@ -8,8 +8,8 @@ import { useSocket } from '../../context/SocketContext';
 import ResponsiveOrderTable from '../../components/ui/ResponsiveOrderTable';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
+import SearchInput from '../../components/ui/SearchInput';
 import {
-    HiOutlineSearch, HiOutlineX,
     HiOutlineClock, HiOutlineCheckCircle,
     HiOutlineCheck, HiOutlineXCircle,
     HiOutlineShoppingCart,
@@ -218,16 +218,14 @@ function ManageOrdersPage() {
                 {/* ── Page header ── */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
-                            Manage Orders
-                        </h1>
-                        <p className="text-sm text-gray-500 mt-0.5">
-                            View, update and manage all customer orders
-                        </p>
+                        <h1 className="text-heading-2">Manage Orders</h1>
+                        <p className="text-description mt-1">View, update and manage all customer orders</p>
                     </div>
-                    {/* order count chip */}
                     {!isLoading && (
-                        <span className="inline-flex items-center gap-2 self-start sm:self-auto px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold">
+                        <span
+                            className="inline-flex items-center gap-2 self-start sm:self-auto px-3 py-1.5 rounded-lg text-sm font-semibold"
+                            style={{ backgroundColor: 'rgba(59,130,246,0.08)', color: 'var(--primary)', border: '1px solid rgba(59,130,246,0.2)' }}
+                        >
                             <HiOutlineShoppingCart className="w-4 h-4" />
                             {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'}
                         </span>
@@ -235,29 +233,12 @@ function ManageOrdersPage() {
                 </div>
 
                 {/* ── Search ── */}
-                <div className="relative">
-                    <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                    <input
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search by order ID, product or customer…"
-                        className="
-                            w-full pl-10 pr-10 py-2.5
-                            rounded-lg border border-gray-300 bg-white
-                            text-sm text-gray-900 placeholder-gray-400
-                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                            transition-shadow
-                        "
-                    />
-                    {searchTerm && (
-                        <button
-                            onClick={() => setSearchTerm('')}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                            <HiOutlineX className="w-4 h-4" />
-                        </button>
-                    )}
-                </div>
+                <SearchInput
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onClear={() => setSearchTerm('')}
+                    placeholder="Search by order ID, product or customer…"
+                />
 
                 {/* ── Filter tabs ── */}
                 <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 scrollbar-hide">
@@ -266,14 +247,11 @@ function ManageOrdersPage() {
                             <button
                                 key={key}
                                 onClick={() => setStatusFilter(key)}
-                                className={`
-                                    px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap
-                                    transition-all duration-150
-                                    ${statusFilter === key
-                                        ? 'bg-blue-600 text-white shadow-sm'
-                                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                                    }
-                                `}
+                                className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 min-h-[36px]"
+                                style={statusFilter === key
+                                    ? { backgroundColor: 'var(--primary)', color: '#fff' }
+                                    : { backgroundColor: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }
+                                }
                             >
                                 {label}
                             </button>
@@ -303,11 +281,11 @@ function ManageOrdersPage() {
                 ) : (
                     /* ── Empty state ── */
                     <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                            <HiOutlineShoppingCart className="w-8 h-8 text-gray-400" />
+                        <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'var(--bg-surface-3)' }}>
+                            <HiOutlineShoppingCart className="w-8 h-8" style={{ color: 'var(--text-muted)' }} />
                         </div>
-                        <h3 className="text-base font-semibold text-gray-900 mb-1">No orders found</h3>
-                        <p className="text-sm text-gray-500 max-w-xs">
+                        <h3 className="text-base font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>No orders found</h3>
+                        <p className="text-sm max-w-xs" style={{ color: 'var(--text-muted)' }}>
                             {searchTerm
                                 ? 'No orders match your search. Try different keywords or clear the filter.'
                                 : 'No orders have been placed yet. They will appear here once customers start ordering.'}
@@ -315,7 +293,8 @@ function ManageOrdersPage() {
                         {searchTerm && (
                             <button
                                 onClick={() => setSearchTerm('')}
-                                className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                                className="mt-4 text-sm font-medium transition-colors"
+                                style={{ color: 'var(--primary)' }}
                             >
                                 Clear search
                             </button>

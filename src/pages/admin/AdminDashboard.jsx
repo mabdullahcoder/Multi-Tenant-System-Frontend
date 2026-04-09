@@ -67,15 +67,16 @@ function AdminDashboard() {
                     </div>
 
                     {/* Time period filter */}
-                    <div className="flex items-center gap-1 rounded-xl p-1 border bg-gray-50">
+                    <div className="flex items-center gap-1 rounded-xl p-1 border overflow-x-auto no-scrollbar" style={{ backgroundColor: 'var(--bg-surface-2)', borderColor: 'var(--border)' }}>
                         {periodButtons.map((period) => (
                             <button
                                 key={period.id}
                                 onClick={() => setTimePeriod(period.id)}
-                                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 whitespace-nowrap ${timePeriod === period.id
-                                        ? 'bg-blue-600 text-white shadow-md'
-                                        : 'text-gray-600 hover:bg-gray-100'
-                                    }`}
+                                className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 whitespace-nowrap min-h-[36px]"
+                                style={timePeriod === period.id
+                                    ? { backgroundColor: 'var(--primary)', color: '#fff' }
+                                    : { color: 'var(--text-secondary)' }
+                                }
                             >
                                 {period.label}
                             </button>
@@ -128,18 +129,18 @@ function AdminDashboard() {
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                                 <div>
                                     <h2 className="text-heading-4">Revenue Analytics</h2>
-                                    <p className="text-caption text-gray-600 mt-1">Today's performance</p>
+                                    <p className="text-caption mt-1" style={{ color: 'var(--text-muted)' }}>Today's performance</p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
-                                    <span className="text-sm font-medium text-gray-700">Sales</span>
+                                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--primary)' }} />
+                                    <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sales</span>
                                 </div>
                             </div>
-                            <div className="relative h-52 sm:h-60 rounded-xl flex items-center justify-center border bg-gray-50">
+                            <div className="relative h-52 sm:h-60 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--bg-surface-2)', border: '1px solid var(--border)' }}>
                                 <div className="text-center px-4">
-                                    <HiOutlineTrendingUp className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                                    <p className="text-sm font-medium text-gray-700">Revenue chart visualization</p>
-                                    <p className="text-xs mt-1 text-gray-500">Integrate charting library for live data</p>
+                                    <HiOutlineTrendingUp className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
+                                    <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Revenue chart visualization</p>
+                                    <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Integrate charting library for live data</p>
                                 </div>
                             </div>
                         </Card>
@@ -151,10 +152,10 @@ function AdminDashboard() {
                             <div className="flex items-center justify-between mb-5">
                                 <div>
                                     <h2 className="text-heading-4">Live Operations</h2>
-                                    <p className="text-caption text-gray-600 mt-1">Order status</p>
+                                    <p className="text-caption mt-1" style={{ color: 'var(--text-muted)' }}>Order status</p>
                                 </div>
-                                <span className="flex items-center gap-1.5 text-xs font-bold text-blue-600">
-                                    <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                                <span className="flex items-center gap-1.5 text-xs font-bold" style={{ color: 'var(--primary)' }}>
+                                    <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--primary)' }} />
                                     LIVE
                                 </span>
                             </div>
@@ -175,7 +176,7 @@ function AdminDashboard() {
                                                         <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 font-semibold" style={{ backgroundColor: c.bg, color: c.text }}>
                                                             {item.count}
                                                         </div>
-                                                        <span className="capitalize text-sm font-medium text-gray-900">{item._id}</span>
+                                                        <span className="capitalize text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{item._id}</span>
                                                     </div>
                                                     <span className="text-xs font-bold" style={{ color: c.text }}>{pct}%</span>
                                                 </div>
@@ -186,7 +187,7 @@ function AdminDashboard() {
                                         </Button>
                                     </>
                                 ) : (
-                                    <p className="text-center py-8 text-sm text-gray-500">No data available</p>
+                                    <p className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>No data available</p>
                                 )}
                             </div>
                         </Card>
@@ -198,9 +199,9 @@ function AdminDashboard() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                         <div>
                             <h2 className="text-heading-4">Reports by Type</h2>
-                            <p className="text-caption text-gray-600 mt-1">Generated reports overview</p>
+                            <p className="text-caption mt-1" style={{ color: 'var(--text-muted)' }}>Generated reports overview</p>
                         </div>
-                        <HiOutlineDocumentText className="w-5 h-5 text-gray-500" />
+                        <HiOutlineDocumentText className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
                     </div>
 
                     {stats.reports?.[0]?.byType ? (
@@ -214,7 +215,7 @@ function AdminDashboard() {
                                         style={{ backgroundColor: c.bg, borderColor: c.border }}
                                     >
                                         <div className="flex items-center justify-between mb-3">
-                                            <span className="capitalize text-sm font-semibold text-gray-900">
+                                            <span className="capitalize text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                                                 {item._id?.replace('_', ' ')}
                                             </span>
                                             <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: c.bg }}>
@@ -222,13 +223,13 @@ function AdminDashboard() {
                                             </div>
                                         </div>
                                         <div className="text-3xl font-bold mb-1" style={{ color: c.text }}>{item.count}</div>
-                                        <div className="text-xs text-gray-600">Generated reports</div>
+                                        <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Generated reports</div>
                                     </div>
                                 );
                             })}
                         </div>
                     ) : (
-                        <p className="text-center py-8 text-sm text-gray-500">No data available</p>
+                        <p className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>No data available</p>
                     )}
                 </Card>
 

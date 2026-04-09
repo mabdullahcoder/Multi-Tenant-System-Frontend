@@ -37,10 +37,10 @@ function CategoryModal({ initial, onSave, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-200">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div className="rounded-2xl shadow-2xl w-full max-w-md" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+                <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
                     <h2 className="text-heading-4">{initial ? 'Edit Category' : 'New Category'}</h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-lg">
+                    <button onClick={onClose} className="p-1 rounded-lg transition-colors" style={{ color: 'var(--text-muted)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                         <HiOutlineX className="w-5 h-5" />
                     </button>
                 </div>
@@ -85,11 +85,11 @@ function CategoryModal({ initial, onSave, onClose }) {
                                     onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
                                     className="w-4 h-4 rounded text-blue-600 cursor-pointer"
                                 />
-                                <span className="text-sm text-gray-700 font-medium">Active</span>
+                                <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Active</span>
                             </label>
                         </div>
                     </div>
-                    <div className="flex justify-end gap-3 pt-2 border-t border-gray-200">
+                    <div className="flex justify-end gap-3 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
                         <button type="button" onClick={onClose} className="btn-md btn-outline">Cancel</button>
                         <button type="submit" disabled={saving} className="btn-md btn-primary-solid">
                             {saving ? 'Saving…' : 'Save Category'}
@@ -123,10 +123,10 @@ function ItemModal({ initial, categories, onSave, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-gray-200">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 sticky top-0 bg-white">
+            <div className="rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+                <div className="flex items-center justify-between px-6 py-4 sticky top-0 rounded-t-2xl z-10" style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-surface)' }}>
                     <h2 className="text-heading-4">{initial ? 'Edit Menu Item' : 'Add New Item'}</h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-lg">
+                    <button onClick={onClose} className="p-1 rounded-lg transition-colors" style={{ color: 'var(--text-muted)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                         <HiOutlineX className="w-5 h-5" />
                     </button>
                 </div>
@@ -236,7 +236,7 @@ function ItemModal({ initial, categories, onSave, onClose }) {
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+                    <div className="flex justify-end gap-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
                         <button type="button" onClick={onClose} className="btn-md btn-outline">Cancel</button>
                         <button type="submit" disabled={saving} className="btn-md btn-primary-solid">
                             {saving ? 'Saving…' : 'Save Item'}
@@ -498,7 +498,7 @@ function ManageMenuPage() {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-1 border-b border-gray-200">
+                <div className="flex gap-1" style={{ borderBottom: '1px solid var(--border)' }}>
                     {[
                         { key: 'items', label: 'Menu Items', icon: HiOutlineCollection },
                         { key: 'categories', label: 'Categories', icon: HiOutlineTag },
@@ -506,7 +506,11 @@ function ManageMenuPage() {
                         <button
                             key={key}
                             onClick={() => setActiveTab(key)}
-                            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors -mb-px ${activeTab === key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'}`}
+                            className="flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors -mb-px"
+                            style={activeTab === key
+                                ? { borderColor: 'var(--primary)', color: 'var(--primary)' }
+                                : { borderColor: 'transparent', color: 'var(--text-secondary)' }
+                            }
                         >
                             <Icon className="w-4 h-4" /> {label}
                         </button>
@@ -524,7 +528,11 @@ function ManageMenuPage() {
                         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                             <button
                                 onClick={() => setSelectedCategoryId('all')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${selectedCategoryId === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+                                className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all min-h-[36px]"
+                                style={selectedCategoryId === 'all'
+                                    ? { backgroundColor: 'var(--primary)', color: '#fff' }
+                                    : { backgroundColor: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }
+                                }
                             >
                                 All ({allItems.filter((i) => showInactive || i.isActive).length})
                             </button>
@@ -534,7 +542,11 @@ function ManageMenuPage() {
                                     <button
                                         key={g._id}
                                         onClick={() => setSelectedCategoryId(g._id)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${selectedCategoryId === g._id ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+                                        className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all min-h-[36px]"
+                                        style={selectedCategoryId === g._id
+                                            ? { backgroundColor: 'var(--primary)', color: '#fff' }
+                                            : { backgroundColor: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }
+                                        }
                                     >
                                         {g.name} ({count})
                                     </button>
@@ -551,12 +563,12 @@ function ManageMenuPage() {
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {displayedItems.map((item) => (
-                                    <div key={item._id} className={`bg-white rounded-xl border overflow-hidden transition-shadow hover:shadow-md ${!item.isActive ? 'opacity-60' : 'border-gray-200'}`}>
-                                        <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
+                                    <div key={item._id} className={`rounded-xl border overflow-hidden transition-shadow hover:shadow-md ${!item.isActive ? 'opacity-60' : ''}`} style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+                                        <div className="aspect-[4/3] relative overflow-hidden" style={{ backgroundColor: 'var(--bg-surface-3)' }}>
                                             {item.image ? (
                                                 <img src={item.image} alt={item.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                <div className="w-full h-full flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>
                                                     <HiOutlineCollection className="w-10 h-10" />
                                                 </div>
                                             )}
@@ -565,15 +577,15 @@ function ManageMenuPage() {
                                             </div>
                                         </div>
                                         <div className="p-3">
-                                            <p className="text-xs text-blue-600 font-medium mb-0.5">{item.category?.name}</p>
-                                            <h3 className="font-semibold text-gray-900 text-sm line-clamp-1">{item.name}</h3>
-                                            <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{item.description}</p>
+                                            <p className="text-xs font-medium mb-0.5" style={{ color: 'var(--primary)' }}>{item.category?.name}</p>
+                                            <h3 className="font-semibold text-sm line-clamp-1" style={{ color: 'var(--text-primary)' }}>{item.name}</h3>
+                                            <p className="text-xs line-clamp-1 mt-0.5" style={{ color: 'var(--text-muted)' }}>{item.description}</p>
                                             <div className="flex items-center justify-between mt-2">
                                                 <div>
                                                     {item.originalPrice && (
-                                                        <p className="text-xs text-gray-400 line-through">Rs{item.originalPrice}</p>
+                                                        <p className="text-xs line-through" style={{ color: 'var(--text-muted)' }}>Rs{item.originalPrice}</p>
                                                     )}
-                                                    <p className="font-bold text-gray-900">Rs{item.price}</p>
+                                                    <p className="font-bold" style={{ color: 'var(--text-primary)' }}>Rs{item.price}</p>
                                                 </div>
                                                 <div className="flex gap-1">
                                                     <button

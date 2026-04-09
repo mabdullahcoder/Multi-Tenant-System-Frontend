@@ -19,7 +19,7 @@ const ROLE_CONFIG = {
 function Field({ label, required, error, children }) {
     return (
         <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
                 {label}{required && <span className="text-red-500 ml-0.5">*</span>}
             </label>
             {children}
@@ -31,7 +31,14 @@ function Field({ label, required, error, children }) {
 function StyledInput({ error, className = '', ...props }) {
     return (
         <input
-            className={`w-full px-3.5 py-2.5 rounded-lg border text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${error ? 'border-red-300' : 'border-gray-200 hover:border-gray-300'} ${className}`}
+            className={`w-full px-3.5 py-2.5 rounded-lg border text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${className}`}
+            style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderColor: error ? '#ef4444' : 'var(--border)',
+                color: 'var(--text-primary)',
+            }}
+            onFocus={(e) => { if (!error) e.currentTarget.style.borderColor = 'var(--primary)'; }}
+            onBlur={(e) => { if (!error) e.currentTarget.style.borderColor = 'var(--border)'; }}
             {...props}
         />
     );
@@ -104,20 +111,20 @@ function CreateUserModal({ isOpen, onClose, onSuccess, currentUserRole }) {
             onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4"
         >
-            <div className="w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] animate-fade-in">
+            <div className="w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] animate-fade-in" style={{ backgroundColor: 'var(--bg-surface)' }}>
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+                <div className="flex items-center justify-between px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                            <HiOutlinePlus className="w-5 h-5 text-blue-600" />
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(59,130,246,0.1)' }}>
+                            <HiOutlinePlus className="w-5 h-5" style={{ color: 'var(--primary)' }} />
                         </div>
                         <div>
-                            <h2 className="text-base font-bold text-gray-900 leading-tight">Create New Account</h2>
-                            <p className="text-xs text-gray-500 mt-0.5">Fill in the details below</p>
+                            <h2 className="text-base font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>Create New Account</h2>
+                            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Fill in the details below</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                    <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors" style={{ color: 'var(--text-muted)' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
                         <HiOutlineX className="w-5 h-5" />
                     </button>
                 </div>
@@ -128,8 +135,8 @@ function CreateUserModal({ isOpen, onClose, onSuccess, currentUserRole }) {
 
                         {/* Role selector — super-admin only */}
                         {canCreateAdmin && (
-                            <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200">
-                                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5">Account Type</p>
+                            <div className="p-3.5 rounded-xl" style={{ backgroundColor: 'var(--bg-surface-2)', border: '1px solid var(--border)' }}>
+                                <p className="text-[11px] font-semibold uppercase tracking-widest mb-2.5" style={{ color: 'var(--text-muted)' }}>Account Type</p>
                                 <div className="grid grid-cols-2 gap-2">
                                     {['user', 'admin'].map((r) => {
                                         const cfg = ROLE_CONFIG[r];
@@ -137,7 +144,11 @@ function CreateUserModal({ isOpen, onClose, onSuccess, currentUserRole }) {
                                         const active = form.role === r;
                                         return (
                                             <button key={r} type="button" onClick={() => setForm((p) => ({ ...p, role: r }))}
-                                                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border text-sm font-semibold transition-all duration-150 ${active ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                                                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border text-sm font-semibold transition-all duration-150 min-h-[44px]"
+                                                style={active
+                                                    ? { backgroundColor: 'var(--primary)', color: '#fff', borderColor: 'var(--primary)' }
+                                                    : { backgroundColor: 'var(--bg-surface)', color: 'var(--text-secondary)', borderColor: 'var(--border)' }
+                                                }
                                             >
                                                 <Icon className="w-4 h-4 flex-shrink-0" />
                                                 {cfg.label}
@@ -190,11 +201,11 @@ function CreateUserModal({ isOpen, onClose, onSuccess, currentUserRole }) {
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center gap-3 px-5 py-4 border-t border-gray-100 flex-shrink-0 bg-gray-50/60">
-                        <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center gap-3 px-5 py-4 flex-shrink-0" style={{ borderTop: '1px solid var(--border)', backgroundColor: 'var(--bg-surface-2)' }}>
+                        <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 rounded-lg border text-sm font-semibold transition-colors min-h-[44px]" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
                             Cancel
                         </button>
-                        <button type="submit" disabled={submitting} className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-sm">
+                        <button type="submit" disabled={submitting} className="flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-sm min-h-[44px]" style={{ backgroundColor: 'var(--primary)' }}>
                             {submitting
                                 ? <><div className="spinner" />Creating…</>
                                 : <><HiOutlinePlus className="w-4 h-4" />Create {ROLE_CONFIG[form.role].label}</>
@@ -294,14 +305,17 @@ function ManageUsersPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">Manage Users</h1>
-                        <p className="text-sm text-gray-500 mt-0.5">
+                        <h1 className="text-heading-2">Manage Users</h1>
+                        <p className="text-description mt-1">
                             {isSuperAdmin ? 'View and manage all users and admin accounts' : 'View and manage all registered users'}
                         </p>
                     </div>
                     <button
                         onClick={() => setShowCreate(true)}
-                        className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+                        className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm min-h-[44px]"
+                        style={{ backgroundColor: 'var(--primary)', color: '#fff' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-dark)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary)'}
                     >
                         <HiOutlinePlus className="w-4 h-4" />
                         {isSuperAdmin ? 'Create User / Admin' : 'Create User'}
@@ -310,24 +324,21 @@ function ManageUsersPage() {
 
                 {/* Tabs — super-admin only */}
                 {isSuperAdmin && (
-                    <div className="flex border-b border-gray-200">
+                    <div className="flex" style={{ borderBottom: '1px solid var(--border)' }}>
                         {TABS.map(({ key, label, icon: Icon }) => (
                             <button
                                 key={key}
                                 onClick={() => handleTabChange(key)}
-                                className={`
-                                    flex items-center gap-2 px-4 py-2.5 text-sm font-medium
-                                    border-b-2 -mb-px
-                                    ${activeTab === key
-                                        ? 'border-blue-600 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }
-                                `}
+                                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors"
+                                style={activeTab === key
+                                    ? { borderColor: 'var(--primary)', color: 'var(--primary)' }
+                                    : { borderColor: 'transparent', color: 'var(--text-secondary)' }
+                                }
                             >
                                 <Icon className="w-4 h-4" />
                                 {label}
                                 {!isLoading && users.length > 0 && activeTab === key && (
-                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-600">
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: 'rgba(59,130,246,0.1)', color: 'var(--primary)' }}>
                                         {users.length}
                                     </span>
                                 )}
@@ -338,18 +349,25 @@ function ManageUsersPage() {
 
                 {/* Search */}
                 <div className="relative">
-                    <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
                     <input
                         type="text"
                         placeholder={`Search ${activeTab === 'admin' ? 'admins' : 'users'} by name or email…`}
                         value={searchQuery}
                         onChange={handleSearch}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:border-gray-300 transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        style={{
+                            backgroundColor: 'var(--bg-surface)',
+                            borderColor: 'var(--border)',
+                            color: 'var(--text-primary)',
+                        }}
+                        onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; }}
+                        onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                     />
                 </div>
 
                 {/* Table */}
-                <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="rounded-xl shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-3">
                             <div className="spinner" />
@@ -388,44 +406,46 @@ function ManageUsersPage() {
                                                                 {user.firstName?.[0]}{user.lastName?.[0]}
                                                             </span>
                                                         </div>
-                                                        <p className="text-sm font-semibold text-gray-900 truncate">
+                                                        <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
                                                             {user.firstName} {user.lastName}
                                                             {user._id === currentUser.id && (
-                                                                <span className="ml-1.5 text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">You</span>
+                                                                <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ color: 'var(--primary)', backgroundColor: 'rgba(59,130,246,0.1)' }}>You</span>
                                                             )}
                                                         </p>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="text-sm text-gray-600">{user.email}</TableCell>
+                                                <TableCell style={{ color: 'var(--text-secondary)' }}>{user.email}</TableCell>
                                                 <TableCell>
                                                     <Badge variant={roleCfg.variant} icon={RoleIcon}>{roleCfg.label}</Badge>
                                                 </TableCell>
-                                                <TableCell className="text-sm text-gray-600">{user.phone || '—'}</TableCell>
+                                                <TableCell style={{ color: 'var(--text-secondary)' }}>{user.phone || '—'}</TableCell>
                                                 <TableCell>
                                                     <Badge variant={user.isBlocked ? 'danger' : 'success'}>
                                                         {user.isBlocked ? 'Blocked' : 'Active'}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="text-sm text-gray-500 whitespace-nowrap">
+                                                <TableCell className="whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
                                                     {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                 </TableCell>
                                                 <TableCell>
                                                     {user._id === currentUser.id ? (
-                                                        <span className="text-xs text-gray-400">—</span>
+                                                        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>—</span>
                                                     ) : canManage(user.role) ? (
                                                         user.isBlocked ? (
                                                             <button onClick={() => handleUnblock(user._id, user.role)}
-                                                                className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+                                                                className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                                                                style={{ color: 'var(--success)', backgroundColor: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)' }}>
                                                                 Unblock
                                                             </button>
                                                         ) : (
                                                             <button onClick={() => handleBlock(user._id, user.role)}
-                                                                className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-red-700 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors">
+                                                                className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                                                                style={{ color: 'var(--danger)', backgroundColor: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
                                                                 Block
                                                             </button>
                                                         )
                                                     ) : (
-                                                        <span className="text-xs text-gray-400" title="Insufficient permissions">No access</span>
+                                                        <span className="text-xs" style={{ color: 'var(--text-muted)' }} title="Insufficient permissions">No access</span>
                                                     )}
                                                 </TableCell>
                                             </TableRow>
@@ -436,16 +456,16 @@ function ManageUsersPage() {
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                            <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'var(--bg-surface-3)' }}>
                                 {activeTab === 'admin'
-                                    ? <HiOutlineShieldCheck className="w-7 h-7 text-gray-400" />
-                                    : <HiOutlineSearch className="w-7 h-7 text-gray-400" />
+                                    ? <HiOutlineShieldCheck className="w-7 h-7" style={{ color: 'var(--text-muted)' }} />
+                                    : <HiOutlineSearch className="w-7 h-7" style={{ color: 'var(--text-muted)' }} />
                                 }
                             </div>
-                            <p className="text-sm font-semibold text-gray-700">
+                            <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                                 No {activeTab === 'admin' ? 'admins' : 'users'} found
                             </p>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                                 {searchQuery ? 'Try a different search term' : `Create the first ${activeTab === 'admin' ? 'admin' : 'user'} using the button above`}
                             </p>
                         </div>

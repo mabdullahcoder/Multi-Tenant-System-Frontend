@@ -128,13 +128,13 @@ function ActionsDropdown({
             <button
                 ref={triggerRef}
                 onClick={handleOpen}
-                className={`
-                    inline-flex items-center justify-center
-                    w-8 h-8 rounded-full
-                    text-gray-400 hover:text-gray-600
-                    hover:bg-gray-100 transition-all duration-200
-                    ${isOpen ? 'bg-gray-100 text-gray-700 font-bold' : ''}
-                `}
+                className="inline-flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200"
+                style={{
+                    color: isOpen ? 'var(--text-primary)' : 'var(--text-muted)',
+                    backgroundColor: isOpen ? 'var(--bg-surface-3)' : 'transparent',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-surface-3)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={(e) => { if (!isOpen) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; } }}
                 aria-label="Order actions"
             >
                 <HiOutlineDotsVertical className="w-4 h-4" />
@@ -145,58 +145,43 @@ function ActionsDropdown({
                     {isOpen && (
                         <motion.div
                             ref={popoverRef}
-                            initial={{
-                                opacity: 0,
-                                scale: 0.95,
-                                y: popoverPos.openUp ? 8 : -8,
-                            }}
-                            animate={{
-                                opacity: 1,
-                                scale: 1,
-                                y: 0,
-                            }}
-                            exit={{
-                                opacity: 0,
-                                scale: 0.95,
-                                y: popoverPos.openUp ? 8 : -8,
-                            }}
+                            initial={{ opacity: 0, scale: 0.95, y: popoverPos.openUp ? 8 : -8 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: popoverPos.openUp ? 8 : -8 }}
                             transition={{ duration: 0.15, ease: "easeOut" }}
                             style={{
                                 position: 'fixed',
                                 top: popoverPos.top,
                                 left: popoverPos.left,
                                 zIndex: 9999,
+                                backgroundColor: 'var(--bg-surface)',
+                                border: '1px solid var(--border)',
+                                boxShadow: 'var(--shadow-xl)',
                             }}
-                            className="w-52 bg-white rounded-xl shadow-2xl border border-gray-200 py-1.5 pointer-events-auto"
+                            className="w-52 rounded-xl py-1.5 pointer-events-auto"
                         >
                             {/* View Details */}
                             <button
                                 onClick={() => { onViewDetails(order._id); onToggle(); }}
-                                className="
-                                    w-full flex items-center gap-3
-                                    px-3.5 py-2.5
-                                    text-sm text-gray-700 font-medium
-                                    hover:bg-gray-50
-                                    transition-colors duration-100
-                                "
+                                className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm font-medium transition-colors duration-100"
+                                style={{ color: 'var(--text-primary)' }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
                             >
-                                <HiOutlineEye className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                <HiOutlineEye className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
                                 View Details
                             </button>
 
                             {/* Delete — super-admin only */}
                             {userRole === 'super-admin' && (
                                 <>
-                                    <div className="my-1 border-t border-gray-100" />
+                                    <div className="my-1" style={{ borderTop: '1px solid var(--border-light)' }} />
                                     <button
                                         onClick={() => { onDelete(order._id, order.orderId); onToggle(); }}
-                                        className="
-                                            w-full flex items-center gap-3
-                                            px-3.5 py-2.5
-                                            text-sm font-medium text-red-600
-                                            hover:bg-red-50
-                                            transition-colors duration-100
-                                        "
+                                        className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm font-medium transition-colors duration-100"
+                                        style={{ color: 'var(--danger)' }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.06)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
                                     >
                                         <HiOutlineTrash className="w-4 h-4 flex-shrink-0" />
                                         Delete Order
@@ -243,11 +228,7 @@ function ResponsiveOrderTable({
 
     /* close on outside click */
     useEffect(() => {
-        const handler = (e) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-                setOpenDropdown(null);
-            }
-        };
+        const handler = () => setOpenDropdown(null);
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
@@ -256,33 +237,29 @@ function ResponsiveOrderTable({
 
     /* ── Desktop table ── */
     const DesktopTable = () => (
-        <div className="hidden md:block w-full bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="hidden md:block w-full rounded-xl shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
             {/* thead */}
-            <div className="bg-gray-50 border-b border-gray-200">
+            <div style={{ backgroundColor: 'var(--bg-surface-2)', borderBottom: '1px solid var(--border)' }}>
                 <div
-                    className={`
-                        grid items-center
-                        ${showCustomer
-                            ? 'grid-cols-[2fr_1.6fr_2.2fr_0.6fr_1.2fr_1.1fr_52px]'
-                            : 'grid-cols-[2fr_2.4fr_0.6fr_1.2fr_1.1fr_52px]'
-                        }
-                        px-5 py-3 gap-4
-                    `}
+                    className={`grid items-center ${showCustomer
+                        ? 'grid-cols-[2fr_1.6fr_2.2fr_0.6fr_1.2fr_1.1fr_52px]'
+                        : 'grid-cols-[2fr_2.4fr_0.6fr_1.2fr_1.1fr_52px]'
+                        } px-5 py-3 gap-4`}
                 >
-                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Order</span>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Order</span>
                     {showCustomer && (
-                        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Customer</span>
+                        <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Customer</span>
                     )}
-                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Product</span>
-                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-center">Qty</span>
-                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right">Amount</span>
-                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-center">Status</span>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Product</span>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-center" style={{ color: 'var(--text-secondary)' }}>Qty</span>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-right" style={{ color: 'var(--text-secondary)' }}>Amount</span>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-center" style={{ color: 'var(--text-secondary)' }}>Status</span>
                     <span className="sr-only">Actions</span>
                 </div>
             </div>
 
             {/* tbody */}
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y" style={{ borderColor: 'var(--border-light)' }}>
                 {orders.map((order) => {
                     const cfg = getStatusConfig(order.status);
                     const transitions = getAvailableStatusTransitions(order.status);
@@ -290,17 +267,12 @@ function ResponsiveOrderTable({
                     return (
                         <div
                             key={order._id}
-                            className={`
-                                grid items-center
-                                ${showCustomer
-                                    ? 'grid-cols-[2fr_1.6fr_2.2fr_0.6fr_1.2fr_1.1fr_52px]'
-                                    : 'grid-cols-[2fr_2.4fr_0.6fr_1.2fr_1.1fr_52px]'
-                                }
-                                px-5 py-3.5 gap-4
-                                hover:bg-gray-50/70 transition-all duration-300
-                                group relative
-                                ${order._id === deletingOrderId ? 'opacity-40 grayscale pointer-events-none' : ''}
-                            `}
+                            className={`grid items-center ${showCustomer
+                                ? 'grid-cols-[2fr_1.6fr_2.2fr_0.6fr_1.2fr_1.1fr_52px]'
+                                : 'grid-cols-[2fr_2.4fr_0.6fr_1.2fr_1.1fr_52px]'
+                                } px-5 py-3.5 gap-4 transition-all duration-300 group relative ${order._id === deletingOrderId ? 'opacity-40 grayscale pointer-events-none' : ''}`}
+                            onMouseEnter={(e) => { if (order._id !== deletingOrderId) e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
                         >
                             {order._id === deletingOrderId && (
                                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/10 backdrop-blur-[1px]">
@@ -312,28 +284,24 @@ function ResponsiveOrderTable({
                             )}
                             {/* Order ID + date */}
                             <div className="min-w-0">
-                                <p className="text-sm font-semibold text-gray-900 truncate leading-snug">
+                                <p className="text-sm font-semibold truncate leading-snug" style={{ color: 'var(--text-primary)' }}>
                                     #{order.orderId}
                                 </p>
-                                <p className="text-xs text-gray-400 mt-0.5 leading-snug">
-                                    {new Date(order.createdAt).toLocaleDateString('en-US', {
-                                        month: 'short', day: 'numeric', year: 'numeric',
-                                    })}
+                                <p className="text-xs mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
+                                    {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </p>
-                                <p className="text-xs text-gray-400 leading-snug">
-                                    {new Date(order.createdAt).toLocaleTimeString('en-US', {
-                                        hour: '2-digit', minute: '2-digit',
-                                    })}
+                                <p className="text-xs leading-snug" style={{ color: 'var(--text-muted)' }}>
+                                    {new Date(order.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                             </div>
 
                             {/* Customer */}
                             {showCustomer && (
                                 <div className="min-w-0">
-                                    <p className="text-sm font-medium text-gray-800 truncate leading-snug">
+                                    <p className="text-sm font-medium truncate leading-snug" style={{ color: 'var(--text-primary)' }}>
                                         {order.userId?.firstName || '—'} {order.userId?.lastName || ''}
                                     </p>
-                                    <p className="text-xs text-gray-400 truncate mt-0.5 leading-snug">
+                                    <p className="text-xs truncate mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
                                         {order.userId?.email || ''}
                                     </p>
                                 </div>
@@ -341,11 +309,11 @@ function ResponsiveOrderTable({
 
                             {/* Product */}
                             <div className="min-w-0">
-                                <p className="text-sm font-medium text-gray-800 truncate leading-snug">
+                                <p className="text-sm font-medium truncate leading-snug" style={{ color: 'var(--text-primary)' }}>
                                     {order.productName}
                                 </p>
                                 {order.productDescription && (
-                                    <p className="text-xs text-gray-400 truncate mt-0.5 leading-snug">
+                                    <p className="text-xs truncate mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
                                         {order.productDescription}
                                     </p>
                                 )}
@@ -353,22 +321,17 @@ function ResponsiveOrderTable({
 
                             {/* Qty */}
                             <div className="flex justify-center">
-                                <span className="
-                                    inline-flex items-center justify-center
-                                    w-8 h-8 rounded-lg
-                                    bg-gray-100 text-gray-700
-                                    text-sm font-semibold
-                                ">
+                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-semibold" style={{ backgroundColor: 'var(--bg-surface-3)', color: 'var(--text-primary)' }}>
                                     {order.quantity}
                                 </span>
                             </div>
 
                             {/* Amount */}
                             <div className="text-right min-w-0">
-                                <p className="text-sm font-bold text-gray-900 leading-snug">
+                                <p className="text-sm font-bold leading-snug" style={{ color: 'var(--text-primary)' }}>
                                     ₨{order.totalAmount?.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </p>
-                                <p className="text-xs text-gray-400 mt-0.5 leading-snug">
+                                <p className="text-xs mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
                                     ₨{(order.totalAmount / order.quantity)?.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ea.
                                 </p>
                             </div>
@@ -423,10 +386,8 @@ function ResponsiveOrderTable({
                 return (
                     <div
                         key={order._id}
-                        className={`
-                            bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden transition-all duration-300 relative
-                            ${order._id === deletingOrderId ? 'opacity-40 grayscale pointer-events-none scale-[0.98]' : ''}
-                        `}
+                        className={`rounded-xl shadow-sm overflow-hidden transition-all duration-300 relative ${order._id === deletingOrderId ? 'opacity-40 grayscale pointer-events-none scale-[0.98]' : ''}`}
+                        style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
                     >
                         {order._id === deletingOrderId && (
                             <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/20 backdrop-blur-[2px]">
@@ -437,10 +398,10 @@ function ResponsiveOrderTable({
                             </div>
                         )}
                         {/* Card header */}
-                        <div className="flex items-start justify-between px-4 pt-4 pb-3 border-b border-gray-100">
+                        <div className="flex items-start justify-between px-4 pt-4 pb-3" style={{ borderBottom: '1px solid var(--border-light)' }}>
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-sm font-bold text-gray-900">
+                                    <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
                                         #{order.orderId}
                                     </span>
                                     {/* "New" badge — within 5 min */}
@@ -450,14 +411,10 @@ function ResponsiveOrderTable({
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-xs text-gray-400 mt-0.5">
-                                    {new Date(order.createdAt).toLocaleDateString('en-US', {
-                                        month: 'short', day: 'numeric', year: 'numeric',
-                                    })}{' '}
+                                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                                    {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}{' '}
                                     ·{' '}
-                                    {new Date(order.createdAt).toLocaleTimeString('en-US', {
-                                        hour: '2-digit', minute: '2-digit',
-                                    })}
+                                    {new Date(order.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                             </div>
                             <StatusSwitcher
@@ -478,10 +435,10 @@ function ResponsiveOrderTable({
                         <div className="px-4 py-3 space-y-3">
                             {/* Product */}
                             <div>
-                                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Product</p>
-                                <p className="text-sm font-semibold text-gray-800 leading-snug">{order.productName}</p>
+                                <p className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Product</p>
+                                <p className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>{order.productName}</p>
                                 {order.productDescription && (
-                                    <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{order.productDescription}</p>
+                                    <p className="text-xs mt-0.5 line-clamp-1" style={{ color: 'var(--text-muted)' }}>{order.productDescription}</p>
                                 )}
                             </div>
 
@@ -489,19 +446,19 @@ function ResponsiveOrderTable({
                             <div className={`grid gap-3 ${showCustomer ? 'grid-cols-3' : 'grid-cols-2'}`}>
                                 {showCustomer && (
                                     <div>
-                                        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Customer</p>
-                                        <p className="text-sm font-medium text-gray-800 truncate">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Customer</p>
+                                        <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
                                             {order.userId?.firstName || '—'} {order.userId?.lastName || ''}
                                         </p>
                                     </div>
                                 )}
                                 <div>
-                                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Qty</p>
-                                    <p className="text-sm font-bold text-gray-900">{order.quantity}</p>
+                                    <p className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Qty</p>
+                                    <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{order.quantity}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total</p>
-                                    <p className="text-sm font-bold text-gray-900">
+                                    <p className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Total</p>
+                                    <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
                                         ₨{order.totalAmount?.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
@@ -512,14 +469,10 @@ function ResponsiveOrderTable({
                         <div className="px-4 pb-4 flex items-center gap-2">
                             <button
                                 onClick={() => onViewDetails(order._id)}
-                                className="
-                                    flex-1 flex items-center justify-center gap-2
-                                    px-3 py-2 rounded-lg
-                                    bg-blue-50 text-blue-700
-                                    text-sm font-semibold
-                                    hover:bg-blue-100
-                                    transition-colors duration-150
-                                "
+                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 min-h-[40px]"
+                                style={{ backgroundColor: 'rgba(59,130,246,0.08)', color: 'var(--primary)' }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(59,130,246,0.15)'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(59,130,246,0.08)'}
                             >
                                 <HiOutlineEye className="w-4 h-4" />
                                 View Details
@@ -536,14 +489,10 @@ function ResponsiveOrderTable({
                                 return (
                                     <button
                                         onClick={() => toggle(order._id)}
-                                        className="
-                                            flex items-center gap-1.5
-                                            px-3 py-2 rounded-lg
-                                            bg-gray-100 text-gray-600
-                                            text-sm font-semibold
-                                            hover:bg-gray-200
-                                            transition-colors duration-150
-                                        "
+                                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 min-h-[40px]"
+                                        style={{ backgroundColor: 'var(--bg-surface-3)', color: 'var(--text-secondary)' }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-surface-3)'}
                                     >
                                         Actions
                                         <HiOutlineChevronDown
@@ -557,22 +506,17 @@ function ResponsiveOrderTable({
                         {/* Expandable actions panel */}
                         {/* Expandable actions panel */}
                         {isExpanded && (
-                            <div className="border-t border-gray-100 px-4 py-3 bg-gray-50 space-y-2">
-                                <div className="text-center text-xs text-gray-400 italic mb-2">
+                            <div className="px-4 py-3 space-y-2" style={{ borderTop: '1px solid var(--border-light)', backgroundColor: 'var(--bg-surface-2)' }}>
+                                <div className="text-center text-xs italic mb-2" style={{ color: 'var(--text-muted)' }}>
                                     Status management moved to the top-right button.
                                 </div>
                                 {userRole === 'super-admin' && (
                                     <button
                                         onClick={() => { onDelete(order._id, order.orderId); toggle(order._id); }}
-                                        className="
-                                            w-full flex items-center justify-center gap-2
-                                            px-3 py-2 rounded-lg
-                                            bg-red-50 text-red-600
-                                            text-sm font-semibold
-                                            border border-red-200
-                                            hover:bg-red-100 transition-colors
-                                            mt-1
-                                        "
+                                        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors mt-1 min-h-[40px]"
+                                        style={{ backgroundColor: 'rgba(239,68,68,0.08)', color: 'var(--danger)', border: '1px solid rgba(239,68,68,0.2)' }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.15)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.08)'}
                                     >
                                         <HiOutlineTrash className="w-4 h-4" />
                                         Delete Order

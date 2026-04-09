@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
@@ -13,6 +13,9 @@ import {
     HiOutlineLogout,
     HiOutlineCollection,
     HiOutlineFire,
+    HiOutlineShoppingCart,
+    HiOutlineChevronDown,
+    HiOutlineChevronUp,
 } from 'react-icons/hi';
 
 const USER_MENU = [
@@ -33,6 +36,15 @@ const ADMIN_MENU = [
     { icon: HiOutlineUser, label: 'Activity Logs', path: '/admin/activity-logs' },
 ];
 
+// User-facing pages accessible to admins (customer view)
+const ADMIN_USER_VIEWS = [
+    { icon: HiOutlineHome, label: 'User Dashboard', path: '/user/dashboard' },
+    { icon: HiOutlineShoppingCart, label: 'Order Menu', path: '/user/place-order' },
+    { icon: HiOutlineBell, label: 'All User Orders', path: '/user/my-orders' },
+    { icon: HiOutlineDocumentText, label: 'User Reports', path: '/user/reports' },
+    { icon: HiOutlineUser, label: 'Profile', path: '/user/profile' },
+];
+
 function Sidebar() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -44,6 +56,9 @@ function Sidebar() {
 
     const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
     const menuItems = isAdmin ? ADMIN_MENU : USER_MENU;
+
+    // Collapsible "Customer View" section for admins
+    const [customerViewOpen, setCustomerViewOpen] = useState(false);
 
     useEffect(() => {
         if (isMobileOpen) toggleSidebar();
@@ -151,6 +166,67 @@ function Sidebar() {
                             </button>
                         );
                     })}
+
+                    {/* Customer View section — admin only */}
+                    {isAdmin && !isCollapsed && (
+                        <div className="pt-2">
+                            <button
+                                onClick={() => setCustomerViewOpen((v) => !v)}
+                                className="w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-widest transition-colors hover:bg-gray-100"
+                                style={{ color: 'var(--text-muted)' }}
+                            >
+                                <HiOutlineShoppingCart className="w-4 h-4 flex-shrink-0" />
+                                <span className="flex-1 text-left">Customer View</span>
+                                {customerViewOpen
+                                    ? <HiOutlineChevronUp className="w-3.5 h-3.5" />
+                                    : <HiOutlineChevronDown className="w-3.5 h-3.5" />
+                                }
+                            </button>
+
+                            {customerViewOpen && (
+                                <div className="mt-0.5 space-y-0.5 pl-2 border-l-2 border-blue-100 ml-3">
+                                    {ADMIN_USER_VIEWS.map((item) => {
+                                        const Icon = item.icon;
+                                        const active = isActive(item.path);
+                                        return (
+                                            <button
+                                                key={item.path}
+                                                onClick={() => navigate(item.path)}
+                                                aria-current={active ? 'page' : undefined}
+                                                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-all duration-150 min-h-[40px] active:scale-95"
+                                                style={active
+                                                    ? { backgroundColor: 'rgba(59,130,246,0.08)', color: '#3b82f6' }
+                                                    : { color: 'var(--text-secondary)' }
+                                                }
+                                            >
+                                                <Icon
+                                                    className="w-3.5 h-3.5 flex-shrink-0"
+                                                    style={{ color: active ? '#3b82f6' : 'var(--text-muted)' }}
+                                                />
+                                                <span className="text-xs font-medium text-left whitespace-nowrap">{item.label}</span>
+                                                {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Collapsed state: show customer view icon with tooltip */}
+                    {isAdmin && isCollapsed && (
+                        <button
+                            onClick={() => { collapseSidebar(); setCustomerViewOpen(true); }}
+                            className="w-full flex items-center justify-center p-2 sm:p-2.5 rounded-lg hover:bg-gray-100 transition-colors group relative min-h-[44px]"
+                            style={{ color: 'var(--text-muted)' }}
+                            title="Customer View"
+                        >
+                            <HiOutlineShoppingCart className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+                            <span className="pointer-events-none absolute left-full ml-3 z-50 px-3 py-2 rounded-lg text-xs font-semibold bg-white text-gray-900 whitespace-nowrap shadow-xl border border-gray-100 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-200 hidden md:block">
+                                Customer View
+                            </span>
+                        </button>
+                    )}
                 </nav>
 
                 {/* Logout button - Responsive */}

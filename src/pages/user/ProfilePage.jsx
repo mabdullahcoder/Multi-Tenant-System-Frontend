@@ -163,7 +163,7 @@ function ProfilePage() {
                             </div>
                             <h3 className="text-lg font-bold text-gray-900">Unable to load profile</h3>
                             <p className="text-sm text-gray-600 max-w-xs">{error}</p>
-                            <Button 
+                            <Button
                                 onClick={fetchProfile}
                                 className="mt-4 px-8"
                                 variant="outline"
@@ -177,31 +177,29 @@ function ProfilePage() {
                 {!isFetchingProfile && !error && (
                     <>
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                                My Profile
-                            </h1>
-                            <p className="text-sm text-gray-600">
-                                Manage your account settings and preferences
-                            </p>
+                            <h1 className="text-heading-2">My Profile</h1>
+                            <p className="text-description mt-1">Manage your account settings and preferences</p>
                         </div>
 
                         {/* Tabs */}
-                        <div className="flex gap-4 border-b border-gray-200">
+                        <div className="flex gap-4" style={{ borderBottom: '1px solid var(--border)' }}>
                             <button
                                 onClick={() => setActiveTab('profile')}
-                                className={`px-4 py-3 font-medium border-b-2 transition-colors text-sm ${activeTab === 'profile'
-                                    ? 'border-blue-600 text-blue-600'
-                                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                                    }`}
+                                className="px-4 py-3 font-medium border-b-2 transition-colors text-sm"
+                                style={activeTab === 'profile'
+                                    ? { borderColor: 'var(--primary)', color: 'var(--primary)' }
+                                    : { borderColor: 'transparent', color: 'var(--text-secondary)' }
+                                }
                             >
                                 Profile Information
                             </button>
                             <button
                                 onClick={() => setActiveTab('password')}
-                                className={`px-4 py-3 font-medium border-b-2 transition-colors text-sm ${activeTab === 'password'
-                                    ? 'border-blue-600 text-blue-600'
-                                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                                    }`}
+                                className="px-4 py-3 font-medium border-b-2 transition-colors text-sm"
+                                style={activeTab === 'password'
+                                    ? { borderColor: 'var(--primary)', color: 'var(--primary)' }
+                                    : { borderColor: 'transparent', color: 'var(--text-secondary)' }
+                                }
                             >
                                 Change Password
                             </button>
@@ -213,100 +211,85 @@ function ProfilePage() {
                                 <form onSubmit={handleUpdateProfile} className="space-y-5">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                First Name
-                                            </label>
+                                            <label className="label-base block mb-1.5">First Name</label>
                                             <input
                                                 type="text"
                                                 name="firstName"
                                                 value={profileData.firstName}
                                                 onChange={handleProfileChange}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors bg-white text-gray-900 placeholder-gray-500 text-sm"
+                                                className="input-base"
                                                 required
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Last Name
-                                            </label>
+                                            <label className="label-base block mb-1.5">Last Name</label>
                                             <input
                                                 type="text"
                                                 name="lastName"
                                                 value={profileData.lastName}
                                                 onChange={handleProfileChange}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors bg-white text-gray-900 placeholder-gray-500 text-sm"
+                                                className="input-base"
                                                 required
                                             />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Email
-                                        </label>
+                                        <label className="label-base block mb-1.5">Email</label>
                                         <input
                                             type="email"
                                             value={profileData.email}
                                             disabled
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed opacity-60 text-gray-900 text-sm"
+                                            className="input-base opacity-60 cursor-not-allowed"
+                                            style={{ backgroundColor: 'var(--bg-surface-2)' }}
                                         />
-                                        <p className="text-xs text-gray-600 mt-1">
-                                            Email cannot be changed
-                                        </p>
+                                        <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Email cannot be changed</p>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Phone
-                                        </label>
+                                        <label className="label-base block mb-1.5">Phone</label>
                                         <input
                                             type="tel"
                                             name="phone"
                                             value={profileData.phone}
                                             onChange={handleProfileChange}
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors bg-white text-gray-900 placeholder-gray-500 text-sm"
+                                            className="input-base"
                                             placeholder="+1 (555) 000-0000"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Address
-                                        </label>
+                                        <label className="label-base block mb-1.5">Address</label>
                                         <input
                                             type="text"
                                             name="address"
                                             value={profileData.address}
                                             onChange={handleProfileChange}
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors bg-white text-gray-900 placeholder-gray-500 text-sm"
+                                            className="input-base"
                                             placeholder="123 Main Street"
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                City
-                                            </label>
+                                            <label className="label-base block mb-1.5">City</label>
                                             <input
                                                 type="text"
                                                 name="city"
                                                 value={profileData.city}
                                                 onChange={handleProfileChange}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors bg-white text-gray-900 placeholder-gray-500 text-sm"
+                                                className="input-base"
                                                 placeholder="New York"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                State
-                                            </label>
+                                            <label className="label-base block mb-1.5">State</label>
                                             <input
                                                 type="text"
                                                 name="state"
                                                 value={profileData.state}
                                                 onChange={handleProfileChange}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors bg-white text-gray-900 placeholder-gray-500 text-sm"
+                                                className="input-base"
                                                 placeholder="NY"
                                             />
                                         </div>
@@ -314,28 +297,24 @@ function ProfilePage() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Country
-                                            </label>
+                                            <label className="label-base block mb-1.5">Country</label>
                                             <input
                                                 type="text"
                                                 name="country"
                                                 value={profileData.country}
                                                 onChange={handleProfileChange}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors bg-white text-gray-900 placeholder-gray-500 text-sm"
+                                                className="input-base"
                                                 placeholder="United States"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Zip Code
-                                            </label>
+                                            <label className="label-base block mb-1.5">Zip Code</label>
                                             <input
                                                 type="text"
                                                 name="zipCode"
                                                 value={profileData.zipCode}
                                                 onChange={handleProfileChange}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors bg-white text-gray-900 placeholder-gray-500 text-sm"
+                                                className="input-base"
                                                 placeholder="10001"
                                             />
                                         </div>
@@ -359,24 +338,20 @@ function ProfilePage() {
                             <Card>
                                 <form onSubmit={handleChangePassword} className="space-y-5">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Current Password
-                                        </label>
+                                        <label className="label-base block mb-1.5">Current Password</label>
                                         <input
                                             type="password"
                                             name="currentPassword"
                                             value={passwordData.currentPassword}
                                             onChange={handlePasswordChange}
                                             required
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors bg-white text-gray-900 placeholder-gray-500 text-sm"
+                                            className="input-base"
                                             placeholder="Enter your current password"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            New Password
-                                        </label>
+                                        <label className="label-base block mb-1.5">New Password</label>
                                         <input
                                             type="password"
                                             name="newPassword"
@@ -384,15 +359,13 @@ function ProfilePage() {
                                             onChange={handlePasswordChange}
                                             required
                                             minLength={6}
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors bg-white text-gray-900 placeholder-gray-500 text-sm"
+                                            className="input-base"
                                             placeholder="Enter new password (min 6 characters)"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Confirm New Password
-                                        </label>
+                                        <label className="label-base block mb-1.5">Confirm New Password</label>
                                         <input
                                             type="password"
                                             name="confirmPassword"
@@ -400,16 +373,14 @@ function ProfilePage() {
                                             onChange={handlePasswordChange}
                                             required
                                             minLength={6}
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors bg-white text-gray-900 placeholder-gray-500 text-sm"
+                                            className="input-base"
                                             placeholder="Confirm your new password"
                                         />
                                     </div>
 
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                        <p className="text-sm text-blue-900 font-medium">
-                                            Password Requirements:
-                                        </p>
-                                        <ul className="text-sm text-blue-800 mt-2 space-y-1 list-disc list-inside">
+                                    <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.2)' }}>
+                                        <p className="text-sm font-medium" style={{ color: 'var(--primary)' }}>Password Requirements:</p>
+                                        <ul className="text-sm mt-2 space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
                                             <li>Minimum 6 characters</li>
                                             <li>Both passwords must match</li>
                                         </ul>

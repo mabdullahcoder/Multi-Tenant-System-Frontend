@@ -9,8 +9,10 @@ const Table = React.memo(function Table({
     responsive = true,
 }) {
     return (
-        <div className={`rounded-lg border border-gray-200 overflow-hidden ${responsive ? 'overflow-x-auto scrollbar-thin' : 'overflow-x-auto'
-            }`}>
+        <div
+            className={`rounded-xl overflow-hidden ${responsive ? 'overflow-x-auto scrollbar-thin' : 'overflow-x-auto'}`}
+            style={{ border: '1px solid var(--border)' }}
+        >
             <table className={`w-full border-collapse text-xs sm:text-sm ${className}`.trim()}>
                 {children}
             </table>
@@ -23,7 +25,10 @@ const Table = React.memo(function Table({
  */
 export const TableHeader = React.memo(function TableHeader({ children, className = '' }) {
     return (
-        <thead className={`bg-gray-50 border-b border-gray-200 sticky top-0 z-10 ${className}`.trim()}>
+        <thead
+            className={`sticky top-0 z-10 ${className}`.trim()}
+            style={{ backgroundColor: 'var(--bg-surface-2)', borderBottom: '1px solid var(--border)' }}
+        >
             {children}
         </thead>
     );
@@ -49,12 +54,12 @@ export const TableRow = React.memo(function TableRow({
     onClick,
     hoverable = true,
 }) {
-    const hoverClass = hoverable ? 'hover:bg-gray-50 active:bg-gray-100 transition-colors' : '';
-    const clickableClass = onClick ? 'cursor-pointer' : '';
-
     return (
         <tr
-            className={`border-b border-gray-200 last:border-0 ${hoverClass} ${clickableClass} ${className}`.trim()}
+            className={`last:border-0 transition-colors ${hoverable ? 'cursor-default' : ''} ${onClick ? 'cursor-pointer' : ''} ${className}`.trim()}
+            style={{ borderBottom: '1px solid var(--border-light)' }}
+            onMouseEnter={hoverable ? (e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; } : undefined}
+            onMouseLeave={hoverable ? (e) => { e.currentTarget.style.backgroundColor = ''; } : undefined}
             onClick={onClick}
         >
             {children}
@@ -73,7 +78,10 @@ export const TableHead = React.memo(function TableHead({
     const alignClass = align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left';
 
     return (
-        <th className={`px-3 sm:px-4 py-2 sm:py-3 font-medium text-gray-600 text-[10px] sm:text-xs uppercase tracking-wider ${alignClass} ${className}`.trim()}>
+        <th
+            className={`px-3 sm:px-4 py-2.5 sm:py-3 font-semibold text-[10px] sm:text-xs uppercase tracking-wider ${alignClass} ${className}`.trim()}
+            style={{ color: 'var(--text-secondary)' }}
+        >
             {children}
         </th>
     );
@@ -92,7 +100,10 @@ export const TableCell = React.memo(function TableCell({
     const mobileClass = mobileHidden ? 'hidden sm:table-cell' : '';
 
     return (
-        <td className={`px-3 sm:px-4 py-2 sm:py-3 text-gray-700 ${alignClass} ${mobileClass} ${className}`.trim()}>
+        <td
+            className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm ${alignClass} ${mobileClass} ${className}`.trim()}
+            style={{ color: 'var(--text-primary)' }}
+        >
             {children}
         </td>
     );
@@ -108,7 +119,7 @@ export const TableSkeleton = React.memo(function TableSkeleton({ rows = 5, colum
                 <TableRow key={rowIndex}>
                     {Array.from({ length: columns }).map((_, colIndex) => (
                         <TableCell key={colIndex}>
-                            <div className="h-3 sm:h-4 bg-gray-200 rounded animate-pulse" />
+                            <div className="h-3 sm:h-4 rounded animate-pulse" style={{ backgroundColor: 'var(--bg-surface-3)' }} />
                         </TableCell>
                     ))}
                 </TableRow>
@@ -129,7 +140,8 @@ export const TableEmpty = React.memo(function TableEmpty({
             <TableCell colSpan={colSpan} className="text-center py-8 sm:py-12">
                 <div className="flex flex-col items-center justify-center space-y-2">
                     <svg
-                        className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400"
+                        className="w-8 h-8 sm:w-12 sm:h-12"
+                        style={{ color: 'var(--text-muted)' }}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -141,7 +153,7 @@ export const TableEmpty = React.memo(function TableEmpty({
                             d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                         />
                     </svg>
-                    <p className="text-xs sm:text-sm text-gray-500">{message}</p>
+                    <p className="text-xs sm:text-sm" style={{ color: 'var(--text-muted)' }}>{message}</p>
                 </div>
             </TableCell>
         </TableRow>

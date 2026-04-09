@@ -78,6 +78,14 @@ const orderSlice = createSlice({
             }
         },
 
+        // Append items to existing order (admin)
+        appendItemsSuccess: (state, action) => {
+            const updated = action.payload;
+            const idx = state.orders.findIndex((o) => o._id === updated._id);
+            if (idx !== -1) state.orders[idx] = updated;
+            if (state.selectedOrder?._id === updated._id) state.selectedOrder = updated;
+        },
+
         // Cancel order
         cancelOrderSuccess: (state, action) => {
             const orderIndex = state.orders.findIndex((o) => o._id === action.payload._id);
@@ -117,6 +125,7 @@ export const {
     createOrderSuccess,
     createOrderFailure,
     updateOrderStatusSuccess,
+    appendItemsSuccess,
     cancelOrderSuccess,
     getStatsSuccess,
     setFilters,

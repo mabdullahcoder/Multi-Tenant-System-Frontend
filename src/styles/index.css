@@ -63,6 +63,57 @@ body {
     /* Mobile viewport handling */
     --mobile-padding-x: 1rem;
     --tablet-padding-x: 1.5rem;
+
+    /* Theme transition */
+    --theme-transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+}
+
+/* ─── Dark Mode Variables ─── */
+[data-theme="dark"] {
+    --primary: #60a5fa;
+    --primary-light: #93c5fd;
+    --primary-dark: #3b82f6;
+    --secondary: #a78bfa;
+    --accent: #22d3ee;
+    --success: #34d399;
+    --danger: #f87171;
+    --warning: #fbbf24;
+
+    /* True dark — neutral grays, no blue tint */
+    --bg-base: #111111;
+    --bg-surface: #1a1a1a;
+    --bg-surface-2: #222222;
+    --bg-surface-3: #2a2a2a;
+    --bg-hover: #2e2e2e;
+
+    --text-primary: #f5f5f5;
+    --text-secondary: #a3a3a3;
+    --text-muted: #6b6b6b;
+
+    --border: #2e2e2e;
+    --border-light: #252525;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
+
+    --sidebar-bg: #161616;
+    --sidebar-border: #2a2a2a;
+    --navbar-bg: #161616;
+    --navbar-border: #2a2a2a;
+}
+
+/* ─── Smooth theme transitions on all elements ─── */
+*,
+*::before,
+*::after {
+    transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+}
+
+/* Exclude elements where transitions cause jank */
+*:where(svg, img, video, canvas, [data-no-transition]) {
+    transition: none !important;
 }
 
 
@@ -150,7 +201,36 @@ body {
     }
 }
 
-/* ─── Spinner ─── */
+/* ─── Dark mode overrides for hardcoded Tailwind component classes ─── */
+[data-theme="dark"] .badge-success {
+    @apply bg-emerald-900/40 text-emerald-300 border-emerald-700;
+}
+
+[data-theme="dark"] .badge-warning {
+    @apply bg-amber-900/40 text-amber-300 border-amber-700;
+}
+
+[data-theme="dark"] .badge-danger {
+    @apply bg-red-900/40 text-red-300 border-red-700;
+}
+
+[data-theme="dark"] .badge-info {
+    @apply bg-blue-900/40 text-blue-300 border-blue-700;
+}
+
+[data-theme="dark"] .btn-secondary {
+    @apply bg-white/10 text-white hover:bg-white/20;
+}
+
+/* ─── Dark mode scrollbar ─── */
+[data-theme="dark"] .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #3a3a3a;
+}
+
+[data-theme="dark"] .scrollbar-custom:hover::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+}
+
 .spinner {
     display: inline-block;
     width: 20px;
@@ -182,6 +262,22 @@ body {
 
 .animate-fade-in {
     animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-down {
+    animation: fadeInDown 0.2s ease-out;
 }
 
 /* ─── Scrollbar Utilities ─── */
@@ -813,6 +909,7 @@ body {
         display: block;
     }
 }
+
 /* ---------------------------------------------------------- */
 /* SENIOR DEVELOPER RESPONSIVE DESIGN EXTENSIONS */
 /* ---------------------------------------------------------- */
@@ -831,15 +928,49 @@ body {
 }
 
 /* Responsive Grids */
-.grid-responsive-1-2 { display: grid; grid-template-columns: 1fr; gap: 1rem; }
-@media (min-width: 640px) { .grid-responsive-1-2 { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }}
-@media (min-width: 1024px) { .grid-responsive-1-2 { gap: 1.5rem; }}
+.grid-responsive-1-2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
 
-.grid-responsive-1-2-4 { display: grid; grid-template-columns: 1fr; gap: 1rem; }
-@media (min-width: 640px) { .grid-responsive-1-2-4 { grid-template-columns: repeat(2, 1fr); }}
-@media (min-width: 1024px) { .grid-responsive-1-2-4 { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }}
+@media (min-width: 640px) {
+    .grid-responsive-1-2 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .grid-responsive-1-2 {
+        gap: 1.5rem;
+    }
+}
+
+.grid-responsive-1-2-4 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .grid-responsive-1-2-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .grid-responsive-1-2-4 {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+    }
+}
 
 /* Touch Device Optimizations */
 @media (hover: none) and (pointer: coarse) {
-    button, a { -webkit-tap-highlight-color: transparent; }
+
+    button,
+    a {
+        -webkit-tap-highlight-color: transparent;
+    }
 }

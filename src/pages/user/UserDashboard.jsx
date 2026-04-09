@@ -3,10 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/layouts/MainLayout';
 import { orderAPI } from '../../services/orderAPI';
 import {
-    HiOutlineShoppingCart,
-    HiOutlineCurrencyDollar,
     HiOutlinePlus,
-    HiOutlineCheckCircle,
 } from 'react-icons/hi';
 import Button from '../../components/ui/Button';
 
@@ -14,10 +11,15 @@ const TIME_PERIODS = ['Yesterday', 'Last 7 days', 'Last 30 days', 'Last 12 month
 
 function StatCard({ label, value, trend, trendPositive }) {
     return (
-        <div className="card-primary shadow-none hover:shadow-none border-gray-200 hover:border-blue-400">
+        <div
+            className="card-primary shadow-none hover:shadow-none"
+            style={{ borderColor: 'var(--border)' }}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
+        >
             <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-600 mb-2">{label}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>{label}</p>
                     <p className="text-heading-3">{value}</p>
                 </div>
             </div>
@@ -55,16 +57,17 @@ function UserDashboard() {
                         <h1 className="text-heading-2">Dashboard</h1>
                         <p className="text-description mt-1">Overview of your activity and statistics</p>
                     </div>
-                    {/* Horizontal Scrollable Time Period Filters */}
-                    <div className="flex items-center gap-1 sm:gap-2 bg-gray-100/50 rounded-xl p-1 border border-gray-200 overflow-x-auto no-scrollbar">
+                    {/* Time Period Filters */}
+                    <div className="flex items-center gap-1 sm:gap-2 rounded-xl p-1 border overflow-x-auto no-scrollbar" style={{ backgroundColor: 'var(--bg-surface-2)', borderColor: 'var(--border)' }}>
                         {TIME_PERIODS.map((period) => (
                             <button
                                 key={period}
                                 onClick={() => setActivePeriod(period)}
-                                className={`px-3 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap flex-shrink-0 ${activePeriod === period
-                                        ? 'bg-blue-600 text-white'
-                                        : 'text-gray-500 hover:bg-white hover:text-gray-900 border border-transparent hover:border-gray-200'
-                                    }`}
+                                className="px-3 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap flex-shrink-0 min-h-[36px]"
+                                style={activePeriod === period
+                                    ? { backgroundColor: 'var(--primary)', color: '#fff' }
+                                    : { color: 'var(--text-secondary)' }
+                                }
                             >
                                 {period}
                             </button>
@@ -84,10 +87,10 @@ function UserDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Sales Details - Responsive Table */}
                     <div className="lg:col-span-2">
-                        <div className="card-primary shadow-none hover:shadow-none border-gray-200">
-                            <div className="card-header pb-6 border-b border-gray-200">
+                        <div className="card-primary shadow-none hover:shadow-none" style={{ borderColor: 'var(--border)' }}>
+                            <div className="card-header pb-6" style={{ borderBottom: '1px solid var(--border)' }}>
                                 <h2 className="card-title">Sales Details</h2>
-                                <p className="text-xs text-gray-600 mt-1">Last updated on 6 June, 2024</p>
+                                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Last updated on 6 June, 2024</p>
                             </div>
 
                             {/* Responsive Table */}
@@ -95,53 +98,51 @@ function UserDashboard() {
                                 <div className="inline-block min-w-full align-middle px-6 pt-4 sm:px-0">
                                     <table className="min-w-full">
                                         <thead>
-                                            <tr className="border-b border-gray-200">
-                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Sales Type</th>
-                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Sales</th>
-                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">Approval %</th>
-                                                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wide">Revenue</th>
+                                            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Sales Type</th>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Sales</th>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Approval %</th>
+                                                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Revenue</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr className="border-b border-gray-200 hover:bg-blue-50 transition-colors">
-                                                <td className="px-4 py-4 text-sm text-gray-900 font-medium">Initials</td>
-                                                <td className="px-4 py-4 text-sm text-gray-700">856</td>
-                                                <td className="px-4 py-4 text-sm text-gray-700">66%</td>
-                                                <td className="px-4 py-4 text-right text-sm font-semibold text-gray-900">$5,136</td>
-                                            </tr>
-                                            <tr className="border-b border-gray-200 hover:bg-blue-50 transition-colors">
-                                                <td className="px-4 py-4 text-sm text-gray-900 font-medium">Rebills</td>
-                                                <td className="px-4 py-4 text-sm text-gray-700">508</td>
-                                                <td className="px-4 py-4 text-sm text-gray-700">41%</td>
-                                                <td className="px-4 py-4 text-right text-sm font-semibold text-gray-900">$21,483</td>
-                                            </tr>
-                                            <tr className="hover:bg-blue-50 transition-colors">
-                                                <td className="px-4 py-4 text-sm text-gray-900 font-medium">Straight Sales</td>
-                                                <td className="px-4 py-4 text-sm text-gray-700">280</td>
-                                                <td className="px-4 py-4 text-sm text-gray-700">65%</td>
-                                                <td className="px-4 py-4 text-right text-sm font-semibold text-gray-900">$2,891</td>
-                                            </tr>
+                                            {[
+                                                { type: 'Initials', sales: 856, approval: '66%', revenue: '$5,136' },
+                                                { type: 'Rebills', sales: 508, approval: '41%', revenue: '$21,483' },
+                                                { type: 'Straight Sales', sales: 280, approval: '65%', revenue: '$2,891' },
+                                            ].map((row, i, arr) => (
+                                                <tr
+                                                    key={row.type}
+                                                    className="transition-colors"
+                                                    style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--border-light)' : 'none' }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
+                                                >
+                                                    <td className="px-4 py-4 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{row.type}</td>
+                                                    <td className="px-4 py-4 text-sm" style={{ color: 'var(--text-secondary)' }}>{row.sales}</td>
+                                                    <td className="px-4 py-4 text-sm" style={{ color: 'var(--text-secondary)' }}>{row.approval}</td>
+                                                    <td className="px-4 py-4 text-right text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{row.revenue}</td>
+                                                </tr>
+                                            ))}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
 
                             {/* Overview Stats */}
-                            <div className="mt-6 pt-6 border-t border-gray-200">
-                                <h3 className="text-sm font-semibold text-gray-900 mb-4">Overview</h3>
+                            <div className="mt-6 pt-6" style={{ borderTop: '1px solid var(--border)' }}>
+                                <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Overview</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
-                                        <div className="text-xs font-medium text-gray-600 mb-2 uppercase">Initials</div>
-                                        <div className="text-2xl font-bold text-gray-900">25,568</div>
-                                    </div>
-                                    <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
-                                        <div className="text-xs font-medium text-gray-600 mb-2 uppercase">Rebills</div>
-                                        <div className="text-2xl font-bold text-gray-900">19,828</div>
-                                    </div>
-                                    <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
-                                        <div className="text-xs font-medium text-gray-600 mb-2 uppercase">Straight Sales</div>
-                                        <div className="text-2xl font-bold text-gray-900">6,253</div>
-                                    </div>
+                                    {[
+                                        { label: 'Initials', value: '25,568' },
+                                        { label: 'Rebills', value: '19,828' },
+                                        { label: 'Straight Sales', value: '6,253' },
+                                    ].map((item) => (
+                                        <div key={item.label} className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-surface-2)', border: '1px solid var(--border)' }}>
+                                            <div className="text-xs font-medium uppercase mb-2" style={{ color: 'var(--text-secondary)' }}>{item.label}</div>
+                                            <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{item.value}</div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -149,42 +150,42 @@ function UserDashboard() {
 
                     {/* Cashflow Card */}
                     <div>
-                        <div className="card-primary shadow-none hover:shadow-none border-gray-200">
-                            <div className="card-header pb-5 border-b border-gray-200">
+                        <div className="card-primary shadow-none hover:shadow-none" style={{ borderColor: 'var(--border)' }}>
+                            <div className="card-header pb-5" style={{ borderBottom: '1px solid var(--border)' }}>
                                 <h2 className="card-title">Cashflow</h2>
                             </div>
 
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between py-2">
-                                    <span className="text-xs font-semibold text-gray-600 uppercase">Sales</span>
+                                    <span className="text-xs font-semibold uppercase" style={{ color: 'var(--text-secondary)' }}>Sales</span>
                                 </div>
-                                <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                                    <span className="text-sm text-gray-700">Initials</span>
-                                    <span className="text-sm font-semibold text-gray-900">$5,136</span>
+                                <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-light)' }}>
+                                    <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Initials</span>
+                                    <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>$5,136</span>
                                 </div>
-                                <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                                    <span className="text-sm text-gray-700">Rebills</span>
-                                    <span className="text-sm font-semibold text-gray-900">$21,483</span>
+                                <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-light)' }}>
+                                    <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Rebills</span>
+                                    <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>$21,483</span>
                                 </div>
-                                <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                                    <span className="text-sm text-gray-700">Straight Sales</span>
-                                    <span className="text-sm font-semibold text-gray-900">$2,891</span>
+                                <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-light)' }}>
+                                    <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Straight Sales</span>
+                                    <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>$2,891</span>
                                 </div>
-                                <div className="flex items-center justify-between py-3 pt-2 border-t border-gray-200">
-                                    <span className="text-sm font-semibold text-gray-700">Gross Revenue</span>
-                                    <span className="text-sm font-bold text-gray-900">$29,511</span>
+                                <div className="flex items-center justify-between py-3 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                                    <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Gross Revenue</span>
+                                    <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>$29,511</span>
                                 </div>
-                                <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                                    <span className="text-sm text-gray-700">Refunds</span>
-                                    <span className="text-sm font-semibold text-gray-900">$3,423</span>
+                                <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-light)' }}>
+                                    <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Refunds</span>
+                                    <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>$3,423</span>
                                 </div>
-                                <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                                    <span className="text-sm text-gray-700">Chargebacks</span>
-                                    <span className="text-sm font-semibold text-gray-900">$6,159</span>
+                                <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-light)' }}>
+                                    <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Chargebacks</span>
+                                    <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>$6,159</span>
                                 </div>
-                                <div className="flex items-center justify-between py-3 pt-2 border-t border-gray-200">
-                                    <span className="text-sm font-bold text-gray-900">Net Revenue</span>
-                                    <span className="text-lg font-bold text-gray-900">$19,929</span>
+                                <div className="flex items-center justify-between py-3 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                                    <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Net Revenue</span>
+                                    <span className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>$19,929</span>
                                 </div>
                             </div>
                         </div>
@@ -198,7 +199,7 @@ function UserDashboard() {
                         variant="primary"
                         size="md"
                         icon={HiOutlinePlus}
-                        iconPos="left"
+                        iconPosition="left"
                     >
                         Place New Order
                     </Button>

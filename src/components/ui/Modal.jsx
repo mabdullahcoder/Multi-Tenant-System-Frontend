@@ -2,19 +2,13 @@ import React, { useEffect } from 'react';
 
 /**
  * Lightweight modal shell (UI-only). Content remains controlled by parent.
- * Mobile-responsive with safe area handling.
+ * Mobile-responsive with safe area handling. Theme-aware via CSS variables.
  */
 const Modal = React.memo(function Modal({ isOpen, onClose, children, title }) {
     useEffect(() => {
         if (!isOpen) return;
-
-        const onKeyDown = (e) => {
-            if (e.key === 'Escape') onClose?.();
-        };
-
+        const onKeyDown = (e) => { if (e.key === 'Escape') onClose?.(); };
         window.addEventListener('keydown', onKeyDown);
-
-        // Prevent body scroll when modal is open
         document.body.style.overflow = 'hidden';
         return () => {
             window.removeEventListener('keydown', onKeyDown);
@@ -29,30 +23,48 @@ const Modal = React.memo(function Modal({ isOpen, onClose, children, title }) {
             {/* Backdrop */}
             <button
                 aria-label="Close modal"
-                className="absolute inset-0 bg-black/40 transition-opacity"
+                className="absolute inset-0 bg-black/50 transition-opacity"
                 onClick={onClose}
             />
 
-            {/* Modal Container - Responsive sizing */}
-            <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-lg rounded-2xl bg-white backdrop-blur border border-gray-200 shadow-xl max-h-[90vh] overflow-y-auto">
+            {/* Modal Container */}
+            <div
+                className="relative w-full max-w-xs sm:max-w-sm md:max-w-lg rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto"
+                style={{
+                    backgroundColor: 'var(--bg-surface)',
+                    border: '1px solid var(--border)',
+                    boxShadow: 'var(--shadow-xl)',
+                }}
+            >
                 {/* Header */}
-                {title ? (
-                    <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-gray-200 sticky top-0 bg-white rounded-t-2xl z-10">
-                        <h2 className="text-base sm:text-lg font-semibold text-gray-900 pr-8">
+                {title && (
+                    <div
+                        className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sticky top-0 rounded-t-2xl z-10"
+                        style={{
+                            borderBottom: '1px solid var(--border)',
+                            backgroundColor: 'var(--bg-surface)',
+                        }}
+                    >
+                        <h2
+                            className="text-base sm:text-lg font-semibold pr-8"
+                            style={{ color: 'var(--text-primary)' }}
+                        >
                             {title}
                         </h2>
-                        {/* Close button in header */}
                         <button
                             onClick={onClose}
-                            className="absolute top-4 sm:top-5 right-4 sm:right-6 p-1 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
+                            className="absolute top-4 sm:top-5 right-4 sm:right-6 p-1 rounded-lg transition-colors"
+                            style={{ color: 'var(--text-muted)' }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             aria-label="Close"
                         >
-                            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
-                ) : null}
+                )}
 
                 {/* Content */}
                 <div className="px-4 sm:px-6 py-4 sm:py-5">
@@ -64,4 +76,3 @@ const Modal = React.memo(function Modal({ isOpen, onClose, children, title }) {
 });
 
 export default Modal;
-

@@ -49,12 +49,8 @@ function AdminReportsPage() {
         <MainLayout>
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                        Reports Management
-                    </h1>
-                    <p className="text-sm text-gray-600">
-                        View and manage all system reports
-                    </p>
+                    <h1 className="text-heading-2">Reports Management</h1>
+                    <p className="text-description mt-1">View and manage all system reports</p>
                 </div>
 
                 <Card padding="none">
@@ -77,13 +73,13 @@ function AdminReportsPage() {
                             <TableBody>
                                 {reports.map((report) => (
                                     <TableRow key={report._id}>
-                                        <TableCell className="font-medium text-gray-900">
+                                        <TableCell className="font-medium" style={{ color: 'var(--text-primary)' }}>
                                             {report.title}
                                         </TableCell>
-                                        <TableCell className="capitalize text-gray-700">
+                                        <TableCell className="capitalize">
                                             {report.reportType.replace(/_/g, ' ')}
                                         </TableCell>
-                                        <TableCell className="uppercase text-gray-700">
+                                        <TableCell className="uppercase">
                                             {report.format}
                                         </TableCell>
                                         <TableCell>
@@ -91,13 +87,16 @@ function AdminReportsPage() {
                                                 {report.status}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-gray-700">
+                                        <TableCell>
                                             {new Date(report.createdAt).toLocaleDateString()}
                                         </TableCell>
                                         <TableCell>
                                             <button
                                                 onClick={() => handleDeleteReport(report._id)}
-                                                className="text-red-600 font-medium hover:underline text-sm transition-colors"
+                                                className="text-sm font-medium transition-colors"
+                                                style={{ color: 'var(--danger)' }}
+                                                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.75'}
+                                                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                                             >
                                                 Delete
                                             </button>

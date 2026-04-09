@@ -73,6 +73,13 @@ const cartSlice = createSlice({
         clearCartError: (state) => {
             state.error = null;
         },
+
+        // Seed cart from an existing order's items (admin edit-mode)
+        seedCartFromOrder: (state, action) => {
+            // action.payload: array of { id, name, description, price, quantity }
+            state.items = action.payload;
+            saveCartToStorage(state.items);
+        },
     },
 });
 
@@ -83,6 +90,7 @@ export const {
     clearCart,
     setCartError,
     clearCartError,
+    seedCartFromOrder,
 } = cartSlice.actions;
 
 export const selectCartItems = (state) => state.cart.items;

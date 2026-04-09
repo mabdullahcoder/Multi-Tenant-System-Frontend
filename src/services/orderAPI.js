@@ -66,6 +66,13 @@ export const orderAPI = {
         const response = await apiClient.delete(`/order/${orderId}`);
         return response.data;
     },
+
+    // Append items to a confirmed order (admin only)
+    // `items` is the FULL updated item list; the backend computes the delta.
+    appendItems: async (orderId, items) => {
+        const response = await apiClient.patch(`/order/${orderId}/append-items`, { items });
+        return response.data;
+    },
 };
 
 export default orderAPI;

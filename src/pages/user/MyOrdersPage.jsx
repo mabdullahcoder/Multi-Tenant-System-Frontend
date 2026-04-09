@@ -4,12 +4,13 @@ import MainLayout from '../../components/layouts/MainLayout';
 import { orderAPI } from '../../services/orderAPI';
 import { useUI } from '../../context/UIContext';
 import {
-    HiOutlineSearch, HiOutlineX,
+    HiOutlineX,
     HiOutlineClock, HiOutlineCheckCircle,
     HiOutlineCheck, HiOutlineXCircle,
     HiOutlineShoppingBag, HiOutlinePlus,
 } from 'react-icons/hi';
 import { useSocket } from '../../context/SocketContext';
+import SearchInput from '../../components/ui/SearchInput';
 
 
 /* ── Status config (same palette as admin) ── */
@@ -213,18 +214,15 @@ function MyOrdersPage() {
                 {/* ── Page header ── */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">My Orders</h1>
-                        <p className="text-sm text-gray-500 mt-0.5">Track and manage all your orders</p>
+                        <h1 className="text-heading-2">My Orders</h1>
+                        <p className="text-description mt-1">Track and manage all your orders</p>
                     </div>
                     <button
                         onClick={() => navigate('/user/place-order')}
-                        className="
-                            self-start sm:self-auto
-                            inline-flex items-center gap-2
-                            px-4 py-2 rounded-lg
-                            bg-blue-600 text-white text-sm font-semibold
-                            hover:bg-blue-700 transition-colors shadow-sm
-                        "
+                        className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm min-h-[44px]"
+                        style={{ backgroundColor: 'var(--primary)', color: '#fff' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-dark)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary)'}
                     >
                         <HiOutlinePlus className="w-4 h-4" />
                         Place Order
@@ -232,29 +230,12 @@ function MyOrdersPage() {
                 </div>
 
                 {/* ── Search ── */}
-                <div className="relative">
-                    <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                    <input
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search by product name or order ID…"
-                        className="
-                            w-full pl-10 pr-10 py-2.5
-                            rounded-lg border border-gray-300 bg-white
-                            text-sm text-gray-900 placeholder-gray-400
-                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                            transition-shadow
-                        "
-                    />
-                    {searchTerm && (
-                        <button
-                            onClick={() => setSearchTerm('')}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                            <HiOutlineX className="w-4 h-4" />
-                        </button>
-                    )}
-                </div>
+                <SearchInput
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onClear={() => setSearchTerm('')}
+                    placeholder="Search by product name or order ID…"
+                />
 
                 {/* ── Filter tabs with status counts ── */}
                 <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 scrollbar-hide">
@@ -267,26 +248,22 @@ function MyOrdersPage() {
                                 <button
                                     key={key}
                                     onClick={() => setStatusFilter(key)}
-                                    className={`
-                                        relative px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap
-                                        transition-all duration-150 flex items-center gap-2
-                                        ${isActive
-                                            ? 'bg-blue-600 text-white shadow-md'
-                                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                                        }
-                                    `}
+                                    className="relative px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 flex items-center gap-2 min-h-[36px]"
+                                    style={isActive
+                                        ? { backgroundColor: 'var(--primary)', color: '#fff' }
+                                        : { backgroundColor: 'var(--bg-surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }
+                                    }
                                     title={`View ${label.toLowerCase()} orders (${count})`}
                                 >
                                     <span>{label}</span>
                                     {count > 0 && (
-                                        <span className={`
-                                            inline-flex items-center justify-center
-                                            min-w-6 h-6 px-1.5 rounded-full text-xs font-bold
-                                            ${isActive
-                                                ? 'bg-blue-500 text-white'
-                                                : 'bg-gray-200 text-gray-700'
+                                        <span
+                                            className="inline-flex items-center justify-center min-w-6 h-5 px-1.5 rounded-full text-xs font-bold"
+                                            style={isActive
+                                                ? { backgroundColor: 'rgba(255,255,255,0.25)', color: '#fff' }
+                                                : { backgroundColor: 'var(--bg-surface-3)', color: 'var(--text-secondary)' }
                                             }
-                                        `}>
+                                        >
                                             {count}
                                         </span>
                                     )}
@@ -320,20 +297,20 @@ function MyOrdersPage() {
                         </p>
 
                         {/* ── Desktop table ── */}
-                        <div className="hidden md:block w-full bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="hidden md:block w-full rounded-xl shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
                             {/* thead */}
-                            <div className="bg-gray-50 border-b border-gray-200">
+                            <div style={{ backgroundColor: 'var(--bg-surface-2)', borderBottom: '1px solid var(--border)' }}>
                                 <div className="grid grid-cols-[2fr_2.4fr_0.6fr_1.2fr_1.1fr] items-center px-5 py-3 gap-4">
-                                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Order</span>
-                                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Product</span>
-                                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-center">Qty</span>
-                                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-right">Amount</span>
-                                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider text-center">Status</span>
+                                    <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Order</span>
+                                    <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Product</span>
+                                    <span className="text-[11px] font-semibold uppercase tracking-wider text-center" style={{ color: 'var(--text-secondary)' }}>Qty</span>
+                                    <span className="text-[11px] font-semibold uppercase tracking-wider text-right" style={{ color: 'var(--text-secondary)' }}>Amount</span>
+                                    <span className="text-[11px] font-semibold uppercase tracking-wider text-center" style={{ color: 'var(--text-secondary)' }}>Status</span>
                                 </div>
                             </div>
 
                             {/* tbody */}
-                            <div className="divide-y divide-gray-100">
+                            <div className="divide-y" style={{ borderColor: 'var(--border-light)' }}>
                                 {filteredOrders.map((order) => {
                                     const cfg = getStatusConfig(order.status);
                                     const StatusIcon = cfg.icon;
@@ -354,13 +331,16 @@ function MyOrdersPage() {
                                     return (
                                         <div
                                             key={order._id}
-                                            className="grid grid-cols-[2fr_2.4fr_0.6fr_1.2fr_1.1fr] items-center px-5 py-3.5 gap-4 hover:bg-gray-50/70 transition-colors duration-100 cursor-pointer"
+                                            className="grid grid-cols-[2fr_2.4fr_0.6fr_1.2fr_1.1fr] items-center px-5 py-3.5 gap-4 transition-colors duration-100 cursor-pointer"
+                                            style={{ color: 'var(--text-primary)' }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
                                             onClick={() => navigate(`/user/order/${order._id}`, { state: { refresh: false } })}
                                         >
                                             {/* Order */}
                                             <div className="min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-semibold text-gray-900 truncate leading-snug">
+                                                    <span className="text-sm font-semibold truncate leading-snug" style={{ color: 'var(--text-primary)' }}>
                                                         #{order.orderId}
                                                     </span>
                                                     {isNew && (
@@ -369,35 +349,35 @@ function MyOrdersPage() {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-gray-400 mt-0.5 leading-snug">
+                                                <p className="text-xs mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
                                                     {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                 </p>
-                                                <p className="text-xs text-gray-400 leading-snug">
+                                                <p className="text-xs leading-snug" style={{ color: 'var(--text-muted)' }}>
                                                     {new Date(order.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                                 </p>
                                             </div>
 
                                             {/* Product */}
                                             <div className="min-w-0">
-                                                <p className="text-sm font-medium text-gray-800 truncate leading-snug">{displayProductName}</p>
+                                                <p className="text-sm font-medium truncate leading-snug" style={{ color: 'var(--text-primary)' }}>{displayProductName}</p>
                                                 {displayProductDesc && (
-                                                    <p className="text-xs text-gray-400 truncate mt-0.5 leading-snug">{displayProductDesc}</p>
+                                                    <p className="text-xs truncate mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>{displayProductDesc}</p>
                                                 )}
                                             </div>
 
                                             {/* Qty */}
                                             <div className="flex justify-center">
-                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 text-gray-700 text-sm font-semibold">
+                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-semibold" style={{ backgroundColor: 'var(--bg-surface-3)', color: 'var(--text-primary)' }}>
                                                     {totalQuantity}
                                                 </span>
                                             </div>
 
                                             {/* Amount */}
                                             <div className="text-right min-w-0">
-                                                <p className="text-sm font-bold text-gray-900 leading-snug">
+                                                <p className="text-sm font-bold leading-snug" style={{ color: 'var(--text-primary)' }}>
                                                     ₨{order.totalAmount?.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </p>
-                                                <p className="text-xs text-gray-400 mt-0.5 leading-snug">
+                                                <p className="text-xs mt-0.5 leading-snug" style={{ color: 'var(--text-muted)' }}>
                                                     ₨{(order.totalAmount / totalQuantity)?.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} avg
                                                 </p>
                                             </div>
@@ -433,19 +413,22 @@ function MyOrdersPage() {
                                 return (
                                     <div
                                         key={order._id}
-                                        className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                                        className="rounded-xl shadow-sm overflow-hidden cursor-pointer transition-shadow"
+                                        style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
                                         onClick={() => navigate(`/user/order/${order._id}`, { state: { refresh: false } })}
                                     >
                                         {/* header */}
-                                        <div className="flex items-start justify-between px-4 pt-4 pb-3 border-b border-gray-100">
+                                        <div className="flex items-start justify-between px-4 pt-4 pb-3" style={{ borderBottom: '1px solid var(--border-light)' }}>
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-2 flex-wrap">
-                                                    <span className="text-sm font-bold text-gray-900">#{order.orderId}</span>
+                                                    <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>#{order.orderId}</span>
                                                     {isNew && (
                                                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-white uppercase tracking-wide">New</span>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-gray-400 mt-0.5">
+                                                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
                                                     {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                     {' · '}
                                                     {new Date(order.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -457,27 +440,25 @@ function MyOrdersPage() {
                                         {/* body */}
                                         <div className="px-4 py-3 space-y-3">
                                             <div>
-                                                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Product</p>
-                                                <p className="text-sm font-semibold text-gray-800 leading-snug">{displayProductName}</p>
+                                                <p className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Product</p>
+                                                <p className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>{displayProductName}</p>
                                                 {displayProductDesc && (
-                                                    <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{displayProductDesc}</p>
+                                                    <p className="text-xs mt-0.5 line-clamp-2" style={{ color: 'var(--text-muted)' }}>{displayProductDesc}</p>
                                                 )}
                                             </div>
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Qty</p>
-                                                    <p className="text-sm font-bold text-gray-900">{totalQuantity}</p>
+                                                    <p className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Qty</p>
+                                                    <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{totalQuantity}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total</p>
-                                                    <p className="text-sm font-bold text-gray-900">
+                                                    <p className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Total</p>
+                                                    <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
                                                         ₨{order.totalAmount?.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </p>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        {/* footer removed — no actions */}
                                     </div>
                                 );
                             })}
@@ -486,31 +467,29 @@ function MyOrdersPage() {
                 ) : (
                     /* ── Empty state ── */
                     <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                            <HiOutlineShoppingBag className="w-8 h-8 text-gray-400" />
+                        <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'var(--bg-surface-3)' }}>
+                            <HiOutlineShoppingBag className="w-8 h-8" style={{ color: 'var(--text-muted)' }} />
                         </div>
                         {searchTerm ? (
                             <>
-                                <h3 className="text-base font-semibold text-gray-900 mb-1">No orders match your search</h3>
-                                <p className="text-sm text-gray-500 max-w-xs mb-5">
+                                <h3 className="text-base font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>No orders match your search</h3>
+                                <p className="text-sm max-w-xs mb-5" style={{ color: 'var(--text-muted)' }}>
                                     Try adjusting your search terms or {statusFilter !== 'all' ? 'viewing a different status.' : 'check back later.'}
                                 </p>
                                 <button
-                                    onClick={() => {
-                                        setSearchTerm('');
-                                        setStatusFilter('all');
-                                    }}
-                                    className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                                    onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}
+                                    className="text-sm font-medium transition-colors"
+                                    style={{ color: 'var(--primary)' }}
                                 >
                                     Clear filters
                                 </button>
                             </>
                         ) : (
                             <>
-                                <h3 className="text-base font-semibold text-gray-900 mb-1">
+                                <h3 className="text-base font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
                                     {statusFilter !== 'all' ? `No ${statusFilter} orders` : 'No orders yet'}
                                 </h3>
-                                <p className="text-sm text-gray-500 max-w-xs mb-5">
+                                <p className="text-sm max-w-xs mb-5" style={{ color: 'var(--text-muted)' }}>
                                     {statusFilter !== 'all'
                                         ? `You don't have any orders in "${statusFilter}" status. Try a different status or `
                                         : 'You haven\'t placed any orders yet. Start by '}
@@ -518,7 +497,10 @@ function MyOrdersPage() {
                                 </p>
                                 <button
                                     onClick={() => navigate('/user/place-order')}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm min-h-[44px]"
+                                    style={{ backgroundColor: 'var(--primary)', color: '#fff' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-dark)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary)'}
                                 >
                                     <HiOutlinePlus className="w-4 h-4" />
                                     Place Order

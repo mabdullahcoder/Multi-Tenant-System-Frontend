@@ -57,33 +57,46 @@ function ReceiptModal({
             >
                 {/* ── Modal shell ── */}
                 <div
-                    className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[92vh] flex flex-col overflow-hidden"
+                    className="rounded-2xl shadow-2xl w-full max-w-sm max-h-[92vh] flex flex-col overflow-hidden"
+                    style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* ── Modal header ── */}
-                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 flex-shrink-0 print:hidden">
+                    <div
+                        className="flex items-center justify-between px-5 py-3.5 flex-shrink-0 print:hidden"
+                        style={{ borderBottom: '1px solid var(--border)' }}
+                    >
                         <div className="flex items-center gap-2">
-                            <HiOutlineCheckCircle className="w-5 h-5 text-emerald-500" />
-                            <span className="text-sm font-bold text-gray-900">Order Receipt</span>
+                            <HiOutlineCheckCircle className="w-5 h-5" style={{ color: 'var(--success)' }} />
+                            <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Order Receipt</span>
                         </div>
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={handlePrint}
                                 title="Print"
-                                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                                className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+                                style={{ color: 'var(--text-muted)' }}
+                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                             >
                                 <HiOutlinePrinter className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={handlePrint}
                                 title="Save as PDF"
-                                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                                className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+                                style={{ color: 'var(--text-muted)' }}
+                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                             >
                                 <HiOutlineDownload className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={onClose}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                                className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+                                style={{ color: 'var(--text-muted)' }}
+                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                             >
                                 <HiOutlineX className="w-4 h-4" />
                             </button>
@@ -209,16 +222,21 @@ function ReceiptModal({
                     </div>
 
                     {/* ── Footer actions ── */}
-                    <div className="flex gap-2 px-5 py-3.5 border-t border-gray-100 flex-shrink-0 print:hidden">
+                    <div
+                        className="flex gap-2 px-5 py-3.5 flex-shrink-0 print:hidden"
+                        style={{ borderTop: '1px solid var(--border)' }}
+                    >
                         <button
                             onClick={onClose}
-                            className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors min-h-[44px]"
+                            style={{ backgroundColor: 'var(--bg-surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
                         >
                             Close
                         </button>
                         <button
                             onClick={handlePrint}
-                            className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 min-h-[44px]"
+                            style={{ backgroundColor: 'var(--primary)', color: '#fff' }}
                         >
                             <HiOutlinePrinter className="w-4 h-4" />
                             Print

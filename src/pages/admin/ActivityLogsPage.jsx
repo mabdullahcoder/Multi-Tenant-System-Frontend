@@ -16,26 +16,25 @@ const ACTIONS = [
 function FilterSelect({ label, value, onChange, children }) {
     return (
         <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
                 {label}
             </label>
             <div className="relative">
                 <select
                     value={value}
                     onChange={onChange}
-                    className="
-                        w-full appearance-none
-                        pl-3.5 pr-9 py-2.5
-                        bg-white border border-gray-200 rounded-lg
-                        text-sm font-medium text-gray-800
-                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                        hover:border-gray-300
-                        transition-all cursor-pointer
-                    "
+                    className="w-full appearance-none pl-3.5 pr-9 py-2.5 rounded-lg border text-sm font-medium min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
+                    style={{
+                        backgroundColor: 'var(--bg-surface)',
+                        borderColor: 'var(--border)',
+                        color: 'var(--text-primary)',
+                    }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                 >
                     {children}
                 </select>
-                <HiOutlineChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <HiOutlineChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
             </div>
         </div>
     );
@@ -73,15 +72,15 @@ function ActivityLogsPage() {
 
                 {/* Header */}
                 <div>
-                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">Activity Logs</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">Monitor all system activities and user actions</p>
+                    <h1 className="text-heading-2">Activity Logs</h1>
+                    <p className="text-description mt-1">Monitor all system activities and user actions</p>
                 </div>
 
                 {/* Filter bar */}
-                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                <div className="rounded-xl p-4 shadow-sm" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
                     <div className="flex items-center gap-2 mb-3">
-                        <HiOutlineFilter className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm font-semibold text-gray-700">Filters</span>
+                        <HiOutlineFilter className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                        <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Filters</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <FilterSelect
@@ -108,7 +107,7 @@ function ActivityLogsPage() {
                 </div>
 
                 {/* Table */}
-                <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="rounded-xl shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-3">
                             <div className="spinner" />

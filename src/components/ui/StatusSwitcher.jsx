@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    HiOutlineChevronDown, HiOutlineShieldCheck, 
-    HiOutlineLightningBolt, HiOutlineRefresh 
+import {
+    HiOutlineChevronDown, HiOutlineShieldCheck,
+    HiOutlineLightningBolt, HiOutlineRefresh
 } from 'react-icons/hi';
 
 /**
@@ -11,15 +11,15 @@ import {
  * A polished, popover-based status manager for admins.
  * Uses Portals to prevent clipping in high-density tables with overflow: hidden.
  */
-function StatusSwitcher({ 
-    orderId, 
-    currentStatus, 
-    onStatusChange, 
-    statusConfig, 
-    allStatuses, 
-    availableTransitions, 
+function StatusSwitcher({
+    orderId,
+    currentStatus,
+    onStatusChange,
+    statusConfig,
+    allStatuses,
+    availableTransitions,
     userRole,
-    isUpdating = false 
+    isUpdating = false
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, width: 0, openUp: false });
@@ -33,10 +33,10 @@ function StatusSwitcher({
             const spaceBelow = window.innerHeight - rect.bottom;
             const spaceAbove = rect.top;
             const menuHeight = 280; // approximate max height
-            
+
             // If not enough space below, open upwards
             const openUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
-            
+
             setPopoverPos({
                 top: openUp ? rect.top + window.scrollY : rect.bottom + window.scrollY,
                 left: rect.left + window.scrollX,
@@ -92,9 +92,9 @@ function StatusSwitcher({
 
     // Show suggested next steps (from standard transitions)
     const suggested = availableTransitions.filter(s => s !== currentStatus);
-    
+
     // Show manual overrides (for super admins)
-    const overrides = isSuperAdmin 
+    const overrides = isSuperAdmin
         ? allStatuses.filter(s => s !== currentStatus && !suggested.includes(s))
         : [];
 
@@ -143,20 +143,20 @@ function StatusSwitcher({
                     {isOpen && (
                         <motion.div
                             ref={popoverRef}
-                            initial={{ 
-                                opacity: 0, 
-                                y: popoverPos.openUp ? 8 : -8, 
-                                scale: 0.95 
+                            initial={{
+                                opacity: 0,
+                                y: popoverPos.openUp ? 8 : -8,
+                                scale: 0.95
                             }}
-                            animate={{ 
-                                opacity: 1, 
-                                y: popoverPos.openUp ? -4 : 4, 
-                                scale: 1 
+                            animate={{
+                                opacity: 1,
+                                y: popoverPos.openUp ? -4 : 4,
+                                scale: 1
                             }}
-                            exit={{ 
-                                opacity: 0, 
-                                y: popoverPos.openUp ? 8 : -8, 
-                                scale: 0.95 
+                            exit={{
+                                opacity: 0,
+                                y: popoverPos.openUp ? 8 : -8,
+                                scale: 0.95
                             }}
                             transition={{ duration: 0.15, ease: "easeOut" }}
                             style={{
@@ -166,11 +166,16 @@ function StatusSwitcher({
                                 zIndex: 9999,
                                 transform: popoverPos.openUp ? 'translateY(-100%)' : 'none'
                             }}
-                            className="w-52 bg-white rounded-xl shadow-2xl border border-gray-100 py-1.5 pointer-events-auto"
+                            className="w-52 rounded-xl shadow-2xl py-1.5 pointer-events-auto"
+                            style={{
+                                backgroundColor: 'var(--bg-surface)',
+                                border: '1px solid var(--border)',
+                                boxShadow: 'var(--shadow-xl)',
+                            }}
                         >
                             {/* Header */}
-                            <div className="px-3 pb-2 pt-1 border-b border-gray-50 mb-1">
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Manage Status</p>
+                            <div className="px-3 pb-2 pt-1 mb-1" style={{ borderBottom: '1px solid var(--border)' }}>
+                                <p className="text-[10px] font-bold uppercase tracking-widest leading-none" style={{ color: 'var(--text-muted)' }}>Manage Status</p>
                             </div>
 
                             {/* Standard Flow Section */}
@@ -187,7 +192,10 @@ function StatusSwitcher({
                                             <button
                                                 key={status}
                                                 onClick={() => handleSelect(status)}
-                                                className="w-full flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                                                className="w-full flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium rounded-lg transition-colors text-left"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                             >
                                                 <div className={`p-1 rounded-md ${cfg.bgColor} ${cfg.textColor}`}>
                                                     <SIcon className="w-3.5 h-3.5" />
@@ -201,7 +209,7 @@ function StatusSwitcher({
 
                             {/* Manual Override Section */}
                             {overrides.length > 0 && (
-                                <div className="px-1.5 py-1 border-t border-gray-50 mt-1">
+                                <div className="px-1.5 py-1 mt-1" style={{ borderTop: '1px solid var(--border)' }}>
                                     <p className="px-2 pb-1.5 pt-1.5 text-[9px] font-bold text-amber-500 uppercase tracking-tight flex items-center gap-1">
                                         <HiOutlineShieldCheck className="w-2.5 h-2.5" />
                                         Advanced Override
@@ -213,7 +221,10 @@ function StatusSwitcher({
                                             <button
                                                 key={status}
                                                 onClick={() => handleSelect(status)}
-                                                className="w-full flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-left group"
+                                                className="w-full flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium rounded-lg transition-colors text-left group"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                             >
                                                 <div className="p-1 rounded-md bg-gray-100 text-gray-500 group-hover:bg-amber-50 group-hover:text-amber-600 transition-colors">
                                                     <OIcon className="w-3.5 h-3.5" />

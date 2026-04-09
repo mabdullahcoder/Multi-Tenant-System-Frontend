@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
-import { HiOutlineUser, HiOutlineMenu, HiOutlineX } from 'react-icons/hi';
+import { HiOutlineUser, HiOutlineMenu, HiOutlineX, HiOutlineMoon, HiOutlineSun } from 'react-icons/hi';
 
 function Navbar() {
     const navigate = useNavigate();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const { user } = useAuth();
-    const { sidebar, toggleSidebar } = useUI();
+    const { sidebar, toggleSidebar, isDark, toggleTheme } = useUI();
 
     const isCollapsed = sidebar?.isCollapsed ?? false;
     const isMobileOpen = sidebar?.isOpen ?? false;
@@ -47,6 +47,21 @@ function Navbar() {
                     </button>
 
                     <div className="flex-1" />
+
+                    {/* Theme Toggle */}
+                    <button
+                        onClick={toggleTheme}
+                        aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                        className="p-2 rounded-lg transition-colors mr-1 sm:mr-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        style={{ color: 'var(--text-secondary)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                        {isDark
+                            ? <HiOutlineSun className="w-5 h-5" />
+                            : <HiOutlineMoon className="w-5 h-5" />
+                        }
+                    </button>
 
                     {/* Profile Section */}
                     <div className="relative">
