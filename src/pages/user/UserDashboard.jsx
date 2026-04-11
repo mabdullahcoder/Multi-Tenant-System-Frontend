@@ -4,6 +4,8 @@ import MainLayout from '../../components/layouts/MainLayout';
 import { orderAPI } from '../../services/orderAPI';
 import {
     HiOutlinePlus,
+    HiOutlineShoppingBag,
+    HiOutlineClipboardList,
 } from 'react-icons/hi';
 import Button from '../../components/ui/Button';
 
@@ -193,7 +195,16 @@ function UserDashboard() {
                 </div>
 
                 {/* Action Button */}
-                {/* <div className="flex justify-center sm:justify-end">
+                <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                    <Button
+                        onClick={() => navigate('/user/my-orders')}
+                        variant="secondary"
+                        size="md"
+                        icon={HiOutlineClipboardList}
+                        iconPosition="left"
+                    >
+                        View My Orders
+                    </Button>
                     <Button
                         onClick={() => navigate('/user/place-order')}
                         variant="primary"
@@ -203,7 +214,7 @@ function UserDashboard() {
                     >
                         Place New Order
                     </Button>
-                </div> */}
+                </div>
             </div>
         </MainLayout>
     );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
@@ -14,8 +14,6 @@ import {
     HiOutlineCollection,
     HiOutlineFire,
     HiOutlineShoppingCart,
-    HiOutlineChevronDown,
-    HiOutlineChevronUp,
 } from 'react-icons/hi';
 
 const USER_MENU = [
@@ -34,15 +32,9 @@ const ADMIN_MENU = [
     { icon: HiOutlineCollection, label: 'Manage Menu', path: '/admin/menu' },
     { icon: HiOutlineFlag, label: 'Users', path: '/admin/users' },
     { icon: HiOutlineUser, label: 'Activity Logs', path: '/admin/activity-logs' },
-];
-
-// User-facing pages accessible to admins (customer view)
-const ADMIN_USER_VIEWS = [
-    { icon: HiOutlineHome, label: 'User Dashboard', path: '/user/dashboard' },
+    // Customer-facing views — flat, no section header
     { icon: HiOutlineShoppingCart, label: 'Order Menu', path: '/user/place-order' },
-    { icon: HiOutlineBell, label: 'All User Orders', path: '/user/my-orders' },
-    { icon: HiOutlineDocumentText, label: 'User Reports', path: '/user/reports' },
-    { icon: HiOutlineUser, label: 'Profile', path: '/user/profile' },
+    { icon: HiOutlineBell, label: 'User Orders', path: '/user/my-orders' },
 ];
 
 function Sidebar() {
@@ -57,9 +49,7 @@ function Sidebar() {
     const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
     const menuItems = isAdmin ? ADMIN_MENU : USER_MENU;
 
-    // Collapsible "Customer View" section for admins
-    const [customerViewOpen, setCustomerViewOpen] = useState(false);
-
+    // Close mobile sidebar on route change
     useEffect(() => {
         if (isMobileOpen) toggleSidebar();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -70,22 +60,27 @@ function Sidebar() {
 
     return (
         <>
-            {/* Mobile overlay backdrop */}
+            {/* Mobile overlay */}
             {isMobileOpen && (
                 <div
                     className="lg:hidden fixed inset-0 z-40"
-                    style={{ top: 'var(--navbar-h)', backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)' }}
+                    style={{
+                        top: 'var(--navbar-h)',
+                        backgroundColor: 'rgba(0,0,0,0.45)',
+                        backdropFilter: 'blur(2px)',
+                    }}
                     onClick={toggleSidebar}
                     aria-hidden="true"
                 />
             )}
 
-            {/* Sidebar - Responsive width and position */}
             <aside
                 className={[
                     'fixed top-0 left-0 h-screen z-50 flex flex-col',
                     'transition-[width,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
-                    isCollapsed ? 'w-16 lg:w-[var(--sidebar-w-collapsed)]' : 'w-48 sm:w-64 lg:w-[var(--sidebar-w)]',
+                    isCollapsed
+                        ? 'w-16 lg:w-[var(--sidebar-w-collapsed)]'
+                        : 'w-52 sm:w-64 lg:w-[var(--sidebar-w)]',
                     isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
                 ].join(' ')}
                 style={{
@@ -94,158 +89,166 @@ function Sidebar() {
                     maxWidth: '90vw',
                 }}
             >
-                {/* Brand header - Responsive padding */}
+                {/* ── Brand header ── */}
                 <div
-                    className="flex items-center flex-shrink-0 px-2 sm:px-3"
+                    className="flex items-center flex-shrink-0 px-3"
                     style={{ height: 'var(--navbar-h)', borderBottom: '1px solid var(--sidebar-border)' }}
                 >
                     {isCollapsed ? (
                         <button
                             onClick={collapseSidebar}
-                            className="w-9 h-9 rounded-lg bg-blue-600 hover:bg-blue-700 flex items-center justify-center mx-auto transition-colors active:bg-blue-800 min-h-[44px]"
+                            className="w-9 h-9 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 flex items-center justify-center mx-auto transition-colors"
                             aria-label="Expand sidebar"
                         >
                             <HiChevronRight className="w-4 h-4 text-white" />
                         </button>
                     ) : (
-                        <div className="flex items-center justify-between w-full gap-2">
-                            <div className="flex items-center sm:gap-2.5 min-w-0">
-                                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <img src="/logo.svg" alt="logo" className="w-10 h-10" />
-                                </div>
-                                <span className="text-xs sm:text-sm font-bold text-gray-900 truncate hidden sm:block">Restaurant</span>
+                        <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                                <span
+                                    className="text-sm font-bold truncate"
+                                    style={{ color: 'var(--text-primary)' }}
+                                >
+                                    Restaurant
+                                </span>
                             </div>
                             <button
                                 onClick={collapseSidebar}
-                                className="w-7 h-7 sm:w-8 sm:h-8 rounded-md flex items-center justify-center hover:bg-gray-100 transition-colors flex-shrink-0 active:bg-gray-200 min-h-[44px]"
+                                className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 transition-colors flex-shrink-0"
                                 aria-label="Collapse sidebar"
                             >
-                                <HiChevronLeft className="w-4 h-4 text-gray-400" />
+                                <HiChevronLeft className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                             </button>
                         </div>
                     )}
                 </div>
 
-                {/* Navigation items - Responsive spacing */}
-                <nav className="flex-1 px-1 sm:px-2 py-2 sm:py-3 space-y-0.5 overflow-y-auto overflow-x-hidden scrollbar-thin">
-                    {menuItems.map((item) => {
-                        const Icon = item.icon;
-                        const active = isActive(item.path);
+                {/* ── Navigation ── */}
+                <nav
+                    className="flex-1 px-2 py-3 overflow-y-auto overflow-x-hidden scrollbar-thin"
+                    style={{ gap: 0 }}
+                >
+                    <ul className="space-y-0.5 list-none m-0 p-0">
+                        {menuItems.map((item) => {
+                            const Icon = item.icon;
+                            const active = isActive(item.path);
 
-                        return (
-                            <button
-                                key={item.path}
-                                onClick={() => navigate(item.path)}
-                                aria-current={active ? 'page' : undefined}
-                                className={[
-                                    'w-full flex items-center rounded-lg transition-all duration-150 group relative',
-                                    'min-h-[44px] active:scale-95',
-                                    isCollapsed ? 'justify-center p-2 sm:p-2.5 hover:bg-gray-100' : 'gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2.5',
-                                ].join(' ')}
-                                style={active
-                                    ? { backgroundColor: 'rgba(59,130,246,0.1)', color: '#3b82f6' }
-                                    : { color: 'var(--text-secondary)' }
-                                }
-                            >
-                                <Icon
-                                    className="w-4 h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0"
-                                    style={{ color: active ? '#3b82f6' : 'var(--text-muted)' }}
-                                />
-                                {!isCollapsed && (
-                                    <span className="text-xs sm:text-sm font-medium text-left whitespace-nowrap">{item.label}</span>
-                                )}
-                                {active && !isCollapsed && (
-                                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                                )}
-                                {/* Tooltip on hover (desktop only) */}
-                                {isCollapsed && (
-                                    <span className="pointer-events-none absolute left-full ml-3 z-50 px-3 py-2 rounded-lg text-xs font-semibold bg-white text-gray-900 whitespace-nowrap shadow-xl border border-gray-100 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-200 hidden md:block">
-                                        {item.label}
-                                    </span>
-                                )}
-                            </button>
-                        );
-                    })}
-
-                    {/* Customer View section — admin only */}
-                    {isAdmin && !isCollapsed && (
-                        <div className="pt-2">
-                            <button
-                                onClick={() => setCustomerViewOpen((v) => !v)}
-                                className="w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-widest transition-colors hover:bg-gray-100"
-                                style={{ color: 'var(--text-muted)' }}
-                            >
-                                <HiOutlineShoppingCart className="w-4 h-4 flex-shrink-0" />
-                                <span className="flex-1 text-left">Customer View</span>
-                                {customerViewOpen
-                                    ? <HiOutlineChevronUp className="w-3.5 h-3.5" />
-                                    : <HiOutlineChevronDown className="w-3.5 h-3.5" />
-                                }
-                            </button>
-
-                            {customerViewOpen && (
-                                <div className="mt-0.5 space-y-0.5 pl-2 border-l-2 border-blue-100 ml-3">
-                                    {ADMIN_USER_VIEWS.map((item) => {
-                                        const Icon = item.icon;
-                                        const active = isActive(item.path);
-                                        return (
-                                            <button
-                                                key={item.path}
-                                                onClick={() => navigate(item.path)}
-                                                aria-current={active ? 'page' : undefined}
-                                                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-all duration-150 min-h-[40px] active:scale-95"
-                                                style={active
-                                                    ? { backgroundColor: 'rgba(59,130,246,0.08)', color: '#3b82f6' }
-                                                    : { color: 'var(--text-secondary)' }
+                            return (
+                                <li key={`${item.path}-${item.label}`}>
+                                    <button
+                                        onClick={() => navigate(item.path)}
+                                        aria-current={active ? 'page' : undefined}
+                                        className={[
+                                            'w-full flex items-center rounded-lg transition-all duration-150 group relative',
+                                            'min-h-[44px] active:scale-[0.97]',
+                                            isCollapsed
+                                                ? 'justify-center p-2.5'
+                                                : 'gap-3 px-3 py-2.5',
+                                        ].join(' ')}
+                                        style={
+                                            active
+                                                ? {
+                                                    backgroundColor: 'rgba(59,130,246,0.1)',
+                                                    color: '#3b82f6',
                                                 }
-                                            >
-                                                <Icon
-                                                    className="w-3.5 h-3.5 flex-shrink-0"
-                                                    style={{ color: active ? '#3b82f6' : 'var(--text-muted)' }}
-                                                />
-                                                <span className="text-xs font-medium text-left whitespace-nowrap">{item.label}</span>
-                                                {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    )}
+                                                : {
+                                                    color: 'var(--text-secondary)',
+                                                }
+                                        }
+                                        onMouseEnter={(e) => {
+                                            if (!active) e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (!active) e.currentTarget.style.backgroundColor = '';
+                                        }}
+                                    >
+                                        {/* Icon */}
+                                        <Icon
+                                            className="w-[18px] h-[18px] flex-shrink-0 transition-colors"
+                                            style={{ color: active ? '#3b82f6' : 'var(--text-muted)' }}
+                                        />
 
-                    {/* Collapsed state: show customer view icon with tooltip */}
-                    {isAdmin && isCollapsed && (
-                        <button
-                            onClick={() => { collapseSidebar(); setCustomerViewOpen(true); }}
-                            className="w-full flex items-center justify-center p-2 sm:p-2.5 rounded-lg hover:bg-gray-100 transition-colors group relative min-h-[44px]"
-                            style={{ color: 'var(--text-muted)' }}
-                            title="Customer View"
-                        >
-                            <HiOutlineShoppingCart className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
-                            <span className="pointer-events-none absolute left-full ml-3 z-50 px-3 py-2 rounded-lg text-xs font-semibold bg-white text-gray-900 whitespace-nowrap shadow-xl border border-gray-100 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-200 hidden md:block">
-                                Customer View
-                            </span>
-                        </button>
-                    )}
+                                        {/* Label */}
+                                        {!isCollapsed && (
+                                            <span
+                                                className="text-sm font-medium text-left whitespace-nowrap leading-none flex-1"
+                                                style={{ color: active ? '#3b82f6' : 'var(--text-primary)' }}
+                                            >
+                                                {item.label}
+                                            </span>
+                                        )}
+
+                                        {/* Active indicator dot */}
+                                        {active && !isCollapsed && (
+                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                                        )}
+
+                                        {/* Active indicator bar (collapsed) */}
+                                        {active && isCollapsed && (
+                                            <span
+                                                className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-blue-500"
+                                            />
+                                        )}
+
+                                        {/* Tooltip (collapsed, desktop only) */}
+                                        {isCollapsed && (
+                                            <span
+                                                className="pointer-events-none absolute left-full ml-3 z-50 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shadow-lg opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 hidden md:block"
+                                                style={{
+                                                    backgroundColor: 'var(--bg-surface)',
+                                                    color: 'var(--text-primary)',
+                                                    border: '1px solid var(--border)',
+                                                    boxShadow: 'var(--shadow-lg)',
+                                                }}
+                                            >
+                                                {item.label}
+                                            </span>
+                                        )}
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
                 </nav>
 
-                {/* Logout button - Responsive */}
-                <div className="px-1 sm:px-2 py-2 sm:py-3 flex-shrink-0" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
+                {/* ── Logout ── */}
+                <div
+                    className="px-2 py-3 flex-shrink-0"
+                    style={{ borderTop: '1px solid var(--sidebar-border)' }}
+                >
                     <button
                         onClick={() => { logout(); navigate('/login'); }}
                         className={[
-                            'w-full flex items-center rounded-lg transition-colors duration-150 group relative',
-                            'min-h-[44px] active:scale-95',
-                            isCollapsed ? 'justify-center p-2 sm:p-2.5' : 'gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2.5',
+                            'w-full flex items-center rounded-lg transition-all duration-150 group relative',
+                            'min-h-[44px] active:scale-[0.97]',
+                            isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
                         ].join(' ')}
                         style={{ color: '#ef4444' }}
                         aria-label="Logout"
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.08)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
                     >
-                        <HiOutlineLogout className="w-4 h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0" />
-                        {!isCollapsed && <span className="text-xs sm:text-sm font-medium whitespace-nowrap">Logout</span>}
-                        {/* Tooltip on hover (desktop only) */}
+                        <HiOutlineLogout
+                            className="w-[18px] h-[18px] flex-shrink-0"
+                            style={{ color: '#ef4444' }}
+                        />
+                        {!isCollapsed && (
+                            <span className="text-sm font-medium whitespace-nowrap flex-1 text-left leading-none">
+                                Logout
+                            </span>
+                        )}
+
+                        {/* Tooltip (collapsed, desktop only) */}
                         {isCollapsed && (
-                            <span className="pointer-events-none absolute left-full ml-3 z-50 px-3 py-2 rounded-lg text-xs font-semibold bg-white text-red-600 whitespace-nowrap shadow-xl border border-gray-100 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-200 hidden md:block">
+                            <span
+                                className="pointer-events-none absolute left-full ml-3 z-50 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shadow-lg opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 hidden md:block"
+                                style={{
+                                    backgroundColor: 'var(--bg-surface)',
+                                    color: 'var(--danger)',
+                                    border: '1px solid var(--border)',
+                                    boxShadow: 'var(--shadow-lg)',
+                                }}
+                            >
                                 Logout
                             </span>
                         )}

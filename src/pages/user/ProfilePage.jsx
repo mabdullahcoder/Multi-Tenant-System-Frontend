@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import MainLayout from '../../components/layouts/MainLayout';
 import { userAPI } from '../../services/userAPI';
 import { authAPI } from '../../services/authAPI';
@@ -6,10 +6,9 @@ import { useUI } from '../../context/UIContext';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import LoadingScreen from '../../components/LoadingScreen';
 
 function ProfilePage() {
-    const { user, token, updateUserProfile } = useAuth();
+    const { updateUserProfile } = useAuth();
     const { addNotification } = useUI();
     const [isLoading, setIsLoading] = useState(false);
     const [isFetchingProfile, setIsFetchingProfile] = useState(true);
@@ -147,27 +146,28 @@ function ProfilePage() {
         <MainLayout>
             <div className="max-w-4xl mx-auto space-y-6">
                 {isFetchingProfile && (
-                    <div className="flex flex-col items-center justify-center py-20 space-y-4">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        <p className="text-sm text-gray-500 font-medium">Loading your profile...</p>
+                    <div className="flex flex-col items-center justify-center py-24 gap-3">
+                        <div className="w-8 h-8 rounded-full border-2 border-blue-100 border-t-blue-600 animate-spin" />
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Loading profile…</p>
                     </div>
                 )}
 
                 {error && !isFetchingProfile && (
                     <Card className="py-12">
-                        <div className="flex flex-col items-center justify-center text-center space-y-4">
-                            <div className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-2">
-                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="flex flex-col items-center justify-center text-center gap-3">
+                            <div
+                                className="w-11 h-11 rounded-full flex items-center justify-center"
+                                style={{ backgroundColor: 'rgba(239,68,68,0.08)' }}
+                            >
+                                <svg className="w-5 h-5" style={{ color: 'var(--danger)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900">Unable to load profile</h3>
-                            <p className="text-sm text-gray-600 max-w-xs">{error}</p>
-                            <Button
-                                onClick={fetchProfile}
-                                className="mt-4 px-8"
-                                variant="outline"
-                            >
+                            <div>
+                                <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Unable to load profile</h3>
+                                <p className="text-xs mt-1 max-w-xs" style={{ color: 'var(--text-muted)' }}>{error}</p>
+                            </div>
+                            <Button onClick={fetchProfile} variant="outline" className="mt-1 px-6">
                                 Try Again
                             </Button>
                         </div>
@@ -182,27 +182,30 @@ function ProfilePage() {
                         </div>
 
                         {/* Tabs */}
-                        <div className="flex gap-4" style={{ borderBottom: '1px solid var(--border)' }}>
-                            <button
-                                onClick={() => setActiveTab('profile')}
-                                className="px-4 py-3 font-medium border-b-2 transition-colors text-sm"
-                                style={activeTab === 'profile'
-                                    ? { borderColor: 'var(--primary)', color: 'var(--primary)' }
-                                    : { borderColor: 'transparent', color: 'var(--text-secondary)' }
-                                }
-                            >
-                                Profile Information
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('password')}
-                                className="px-4 py-3 font-medium border-b-2 transition-colors text-sm"
-                                style={activeTab === 'password'
-                                    ? { borderColor: 'var(--primary)', color: 'var(--primary)' }
-                                    : { borderColor: 'transparent', color: 'var(--text-secondary)' }
-                                }
-                            >
-                                Change Password
-                            </button>
+                        <div className="flex gap-1" style={{ borderBottom: '1px solid var(--border)' }}>
+                            {[
+                                { id: 'profile', label: 'Profile Information' },
+                                { id: 'password', label: 'Change Password' },
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className="px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-150 -mb-px"
+                                    style={
+                                        activeTab === tab.id
+                                            ? { borderColor: 'var(--primary)', color: 'var(--primary)' }
+                                            : { borderColor: 'transparent', color: 'var(--text-muted)' }
+                                    }
+                                    onMouseEnter={(e) => {
+                                        if (activeTab !== tab.id) e.currentTarget.style.color = 'var(--text-secondary)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (activeTab !== tab.id) e.currentTarget.style.color = 'var(--text-muted)';
+                                    }}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
                         </div>
 
                         {/* Profile Tab */}

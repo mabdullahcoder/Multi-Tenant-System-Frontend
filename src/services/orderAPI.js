@@ -73,6 +73,12 @@ export const orderAPI = {
         const response = await apiClient.patch(`/order/${orderId}/append-items`, { items });
         return response.data;
     },
+
+    // Replace all items on a confirmed order (admin only — full update)
+    updateItems: async (orderId, items) => {
+        const response = await apiClient.put(`/order/${orderId}/update-items`, { items });
+        return response.data;
+    },
 };
 
 export default orderAPI;

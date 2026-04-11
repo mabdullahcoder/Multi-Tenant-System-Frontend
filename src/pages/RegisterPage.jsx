@@ -1,14 +1,17 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
 import { useFormValidation, validateRegistrationForm } from '../hooks/useFormValidation';
 import authAPI from '../services/authAPI';
-import { HiOutlineAtSymbol, HiOutlineLockClosed, HiOutlineUser } from 'react-icons/hi';
+import { HiOutlineAtSymbol, HiOutlineLockClosed, HiOutlineUser, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 
 function RegisterPage() {
     const navigate = useNavigate();
     const { isLoading, registerStart, registerSuccess, registerFailure } = useAuth();
     const { addNotification } = useUI();
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const { formData, errors, handleChange, setErrors } = useFormValidation({
         firstName: '',
@@ -51,6 +54,15 @@ function RegisterPage() {
             style={{ backgroundColor: 'var(--bg-base)' }}
         >
             <div className="w-full max-w-md">
+                {/* Logo / Brand */}
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style={{ backgroundColor: 'var(--primary)' }}>
+                        <img src="/logo.svg" alt="Logo" className="w-8 h-8 brightness-0 invert" />
+                    </div>
+                    <h1 className="text-heading-2 mb-1">Create your account</h1>
+                    <p className="text-description">Join us and start ordering today</p>
+                </div>
+
                 {/* Card */}
                 <div
                     className="rounded-2xl p-6 sm:p-8 border"
@@ -60,58 +72,62 @@ function RegisterPage() {
                         boxShadow: 'var(--shadow-xl)',
                     }}
                 >
-                    {/* Header */}
-                    <div className="text-center mb-8">
-                        <h1 className="text-heading-2 mb-1">Get Started</h1>
-                        <p className="text-description">Create your account to get started</p>
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                         {/* Name Fields */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="form-group">
-                                <label className="label-base">First Name</label>
+                                <label htmlFor="reg-firstName" className="label-base">First name</label>
                                 <div className="relative">
                                     <HiOutlineUser
                                         className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
                                         style={{ color: 'var(--text-muted)' }}
+                                        aria-hidden="true"
                                     />
                                     <input
+                                        id="reg-firstName"
                                         type="text"
                                         name="firstName"
                                         value={formData.firstName}
                                         onChange={handleChange}
                                         required
+                                        autoComplete="given-name"
+                                        aria-describedby={errors.firstName ? 'reg-firstName-error' : undefined}
+                                        aria-invalid={!!errors.firstName}
                                         className={`input-base pl-10 sm:pl-12 ${errors.firstName ? 'input-error' : ''}`}
                                         placeholder="John"
                                     />
                                 </div>
                                 {errors.firstName && (
-                                    <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>
-                                        {errors.firstName}
+                                    <p id="reg-firstName-error" role="alert" className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--danger)' }}>
+                                        <span aria-hidden="true">⚠</span> {errors.firstName}
                                     </p>
                                 )}
                             </div>
                             <div className="form-group">
-                                <label className="label-base">Last Name</label>
+                                <label htmlFor="reg-lastName" className="label-base">Last name</label>
                                 <div className="relative">
                                     <HiOutlineUser
                                         className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
                                         style={{ color: 'var(--text-muted)' }}
+                                        aria-hidden="true"
                                     />
                                     <input
+                                        id="reg-lastName"
                                         type="text"
                                         name="lastName"
                                         value={formData.lastName}
                                         onChange={handleChange}
                                         required
+                                        autoComplete="family-name"
+                                        aria-describedby={errors.lastName ? 'reg-lastName-error' : undefined}
+                                        aria-invalid={!!errors.lastName}
                                         className={`input-base pl-10 sm:pl-12 ${errors.lastName ? 'input-error' : ''}`}
                                         placeholder="Doe"
                                     />
                                 </div>
                                 {errors.lastName && (
-                                    <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>
-                                        {errors.lastName}
+                                    <p id="reg-lastName-error" role="alert" className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--danger)' }}>
+                                        <span aria-hidden="true">⚠</span> {errors.lastName}
                                     </p>
                                 )}
                             </div>
@@ -119,75 +135,116 @@ function RegisterPage() {
 
                         {/* Email Field */}
                         <div className="form-group">
-                            <label className="label-base">Email Address</label>
+                            <label htmlFor="reg-email" className="label-base">Email address</label>
                             <div className="relative">
                                 <HiOutlineAtSymbol
                                     className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
                                     style={{ color: 'var(--text-muted)' }}
+                                    aria-hidden="true"
                                 />
                                 <input
+                                    id="reg-email"
                                     type="email"
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
                                     required
+                                    autoComplete="email"
+                                    aria-describedby={errors.email ? 'reg-email-error' : undefined}
+                                    aria-invalid={!!errors.email}
                                     className={`input-base pl-10 sm:pl-12 ${errors.email ? 'input-error' : ''}`}
                                     placeholder="you@example.com"
                                 />
                             </div>
                             {errors.email && (
-                                <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>
-                                    {errors.email}
+                                <p id="reg-email-error" role="alert" className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--danger)' }}>
+                                    <span aria-hidden="true">⚠</span> {errors.email}
                                 </p>
                             )}
                         </div>
 
                         {/* Password Field */}
                         <div className="form-group">
-                            <label className="label-base">Password</label>
+                            <label htmlFor="reg-password" className="label-base">Password</label>
                             <div className="relative">
                                 <HiOutlineLockClosed
                                     className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
                                     style={{ color: 'var(--text-muted)' }}
+                                    aria-hidden="true"
                                 />
                                 <input
-                                    type="password"
+                                    id="reg-password"
+                                    type={showPassword ? 'text' : 'password'}
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
                                     required
-                                    className={`input-base pl-10 sm:pl-12 ${errors.password ? 'input-error' : ''}`}
-                                    placeholder="••••••••"
+                                    autoComplete="new-password"
+                                    aria-describedby={errors.password ? 'reg-password-error' : 'reg-password-hint'}
+                                    aria-invalid={!!errors.password}
+                                    className={`input-base pl-10 sm:pl-12 pr-12 ${errors.password ? 'input-error' : ''}`}
+                                    placeholder="Min. 8 characters"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((v) => !v)}
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
+                                    style={{ color: 'var(--text-muted)' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                                >
+                                    {showPassword ? <HiOutlineEyeOff className="w-4 h-4" /> : <HiOutlineEye className="w-4 h-4" />}
+                                </button>
                             </div>
-                            {errors.password && (
-                                <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>
-                                    {errors.password}
+                            {errors.password ? (
+                                <p id="reg-password-error" role="alert" className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--danger)' }}>
+                                    <span aria-hidden="true">⚠</span> {errors.password}
+                                </p>
+                            ) : (
+                                <p id="reg-password-hint" className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                                    Use at least 8 characters
                                 </p>
                             )}
                         </div>
 
                         {/* Confirm Password Field */}
                         <div className="form-group">
-                            <label className="label-base">Confirm Password</label>
+                            <label htmlFor="reg-confirmPassword" className="label-base">Confirm password</label>
                             <div className="relative">
                                 <HiOutlineLockClosed
                                     className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
                                     style={{ color: 'var(--text-muted)' }}
+                                    aria-hidden="true"
                                 />
                                 <input
-                                    type="password"
+                                    id="reg-confirmPassword"
+                                    type={showConfirmPassword ? 'text' : 'password'}
                                     name="confirmPassword"
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
                                     required
-                                    className={`input-base pl-10 sm:pl-12 ${errors.confirmPassword ? 'input-error' : ''}`}
-                                    placeholder="••••••••"
+                                    autoComplete="new-password"
+                                    aria-describedby={errors.confirmPassword ? 'reg-confirmPassword-error' : undefined}
+                                    aria-invalid={!!errors.confirmPassword}
+                                    className={`input-base pl-10 sm:pl-12 pr-12 ${errors.confirmPassword ? 'input-error' : ''}`}
+                                    placeholder="Re-enter your password"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword((v) => !v)}
+                                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
+                                    style={{ color: 'var(--text-muted)' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                                >
+                                    {showConfirmPassword ? <HiOutlineEyeOff className="w-4 h-4" /> : <HiOutlineEye className="w-4 h-4" />}
+                                </button>
                             </div>
                             {errors.confirmPassword && (
-                                <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>
-                                    {errors.confirmPassword}
+                                <p id="reg-confirmPassword-error" role="alert" className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--danger)' }}>
+                                    <span aria-hidden="true">⚠</span> {errors.confirmPassword}
                                 </p>
                             )}
                         </div>
@@ -196,15 +253,16 @@ function RegisterPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="btn-lg btn-primary-solid w-full mt-6 flex items-center justify-center gap-2"
+                            aria-busy={isLoading}
+                            className="btn-lg btn-primary-solid w-full mt-2 flex items-center justify-center gap-2"
                         >
                             {isLoading ? (
                                 <>
-                                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                     </svg>
-                                    Creating account...
+                                    Creating account…
                                 </>
                             ) : (
                                 'Create account'
@@ -212,30 +270,13 @@ function RegisterPage() {
                         </button>
                     </form>
 
-                    {/* Divider */}
-                    <div className="relative my-6">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t" style={{ borderColor: 'var(--border)' }} />
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span
-                                className="px-3 text-sm"
-                                style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--text-muted)' }}
-                            >
-                                or
-                            </span>
-                        </div>
-                    </div>
-
                     {/* Sign In Link */}
-                    <p className="text-center text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    <p className="text-center text-sm mt-6" style={{ color: 'var(--text-secondary)' }}>
                         Already have an account?{' '}
                         <button
                             onClick={() => navigate('/login')}
-                            className="font-semibold transition-colors"
+                            className="font-semibold underline-offset-2 hover:underline transition-colors"
                             style={{ color: 'var(--primary)' }}
-                            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--primary-light)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--primary)')}
                         >
                             Sign in
                         </button>

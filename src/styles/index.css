@@ -247,7 +247,61 @@ body {
     }
 }
 
-/* ─── Fade In ─── */
+/* ─── Suppress native browser clear/cancel button on search inputs ─── */
+/* Prevents double-× when a custom clear button is rendered alongside type="search" */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* ─── Focus-visible styles for keyboard navigation ─── */
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Remove default focus ring for mouse users, keep for keyboard */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* ─── Smooth slide-in for notifications ─── */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(1rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate-slide-in-right {
+    animation: slideInRight 0.2s ease-out;
+}
+
+/* ─── Skeleton loading pulse ─── */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius-md);
+}
+
+
 @keyframes fadeIn {
     from {
         opacity: 0;

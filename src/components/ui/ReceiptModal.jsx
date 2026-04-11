@@ -9,14 +9,20 @@ const pad = (n, len = 6) => String(n).padStart(len, '0');
 
 /* ─── Divider ─── */
 const Divider = ({ dashed = false }) => (
-    <div className={`my-3 border-t ${dashed ? 'border-dashed border-gray-300' : 'border-gray-200'}`} />
+    <div
+        className={`my-3 border-t ${dashed ? 'border-dashed' : ''}`}
+        style={{ borderColor: 'var(--border)' }}
+    />
 );
 
 /* ─── Row ─── */
 const Row = ({ label, value, bold = false, large = false, green = false }) => (
     <div className={`flex items-start justify-between gap-4 py-0.5 ${bold ? 'font-semibold' : ''}`}>
-        <span className={`${large ? 'text-sm' : 'text-xs'} text-gray-500`}>{label}</span>
-        <span className={`${large ? 'text-sm font-bold' : 'text-xs font-medium'} text-right ${green ? 'text-emerald-600' : 'text-gray-900'}`}>
+        <span className={`${large ? 'text-sm' : 'text-xs'}`} style={{ color: 'var(--text-muted)' }}>{label}</span>
+        <span
+            className={`${large ? 'text-sm font-bold' : 'text-xs font-medium'} text-right`}
+            style={{ color: green ? 'var(--success)' : 'var(--text-primary)' }}
+        >
             {value}
         </span>
     </div>
@@ -108,39 +114,36 @@ function ReceiptModal({
                         <div ref={printRef} className="receipt-content px-6 py-5">
 
                             {/* Brand */}
-                            <div className="text-center mb-5">
-                                <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-2.5">
-                                    <img src="../logo.svg" alt="logo" />
-                                </div>
-                                <h1 className="text-base font-bold text-gray-900 tracking-wide">Restaurant</h1>
-                                <p className="text-xs text-gray-400 mt">Order Confirmation</p>
+                            <div className="text-center mb-4">
+                                <h1 className="text-sm font-bold tracking-wide" style={{ color: 'var(--text-primary)' }}>Restaurant</h1>
+                                <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Order Confirmation</p>
                             </div>
 
                             {/* Receipt number + date */}
-                            <div className="bg-gray-50 rounded-xl px-4 py-3 mb-4">
+                            <div className="rounded-lg px-3.5 py-2.5 mb-4" style={{ backgroundColor: 'var(--bg-surface-2)', border: '1px solid var(--border)' }}>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">Receipt No.</p>
-                                        <p className="text-sm font-bold text-gray-900 font-mono">#{receiptNo}</p>
+                                        <p className="text-[9px] font-semibold uppercase tracking-widest mb-0.5" style={{ color: 'var(--text-muted)' }}>Receipt No.</p>
+                                        <p className="text-sm font-bold font-mono" style={{ color: 'var(--text-primary)' }}>#{receiptNo}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">Date & Time</p>
-                                        <p className="text-xs font-medium text-gray-700">{dateStr}</p>
-                                        <p className="text-xs text-gray-500">{timeStr}</p>
+                                        <p className="text-[9px] font-semibold uppercase tracking-widest mb-0.5" style={{ color: 'var(--text-muted)' }}>Date & Time</p>
+                                        <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{dateStr}</p>
+                                        <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{timeStr}</p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Customer + delivery */}
-                            <div className="mb-4">
-                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Customer</p>
+                            <div className="mb-3">
+                                <p className="text-[9px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>Customer</p>
                                 <Row label="Name" value={`${user?.firstName || 'Guest'} ${user?.lastName || ''}`.trim()} />
                                 {user?.email && <Row label="Email" value={user.email} />}
                             </div>
 
                             {deliveryAddress?.street && (
-                                <div className="mb-4">
-                                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Delivery Address</p>
+                                <div className="mb-3">
+                                    <p className="text-[9px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>Delivery Address</p>
                                     <Row label="Street" value={deliveryAddress.street} />
                                     {deliveryAddress.city && (
                                         <Row
@@ -157,17 +160,17 @@ function ReceiptModal({
 
                             {/* Items */}
                             <div className="mb-1">
-                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Order Items</p>
-                                <div className="space-y-2.5">
+                                <p className="text-[9px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>Order Items</p>
+                                <div className="space-y-2">
                                     {cartItems.map((item, i) => (
                                         <div key={i} className="flex items-start justify-between gap-3">
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-semibold text-gray-900 leading-snug truncate">{item.name}</p>
-                                                <p className="text-[11px] text-gray-400 mt-0.5">
+                                                <p className="text-xs font-semibold leading-snug truncate" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
+                                                <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
                                                     {item.quantity} × ₨{fmt(item.price)}
                                                 </p>
                                             </div>
-                                            <p className="text-xs font-bold text-gray-900 flex-shrink-0">
+                                            <p className="text-xs font-bold flex-shrink-0" style={{ color: 'var(--text-primary)' }}>
                                                 ₨{fmt(item.price * item.quantity)}
                                             </p>
                                         </div>
@@ -187,8 +190,8 @@ function ReceiptModal({
                             <Divider />
 
                             <div className="flex items-center justify-between py-1">
-                                <span className="text-sm font-bold text-gray-900">Total</span>
-                                <span className="text-base font-bold text-gray-900">₨{fmt(cartTotal)}</span>
+                                <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Total</span>
+                                <span className="text-sm font-bold" style={{ color: 'var(--primary)' }}>₨{fmt(cartTotal)}</span>
                             </div>
 
                             <Divider />
@@ -197,23 +200,11 @@ function ReceiptModal({
                             <Row label="Payment Method" value="Cash on Delivery" />
                             <Row label="Order Status" value="Confirmed" green />
 
-                            {/* Order IDs if multiple */}
-                            {/* {orderIds.length > 0 && (
-                                <div className="mt-4">
-                                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Order Reference(s)</p>
-                                    {orderIds.map((id, i) => (
-                                        <p key={i} className="text-[11px] font-mono text-gray-600 leading-relaxed">
-                                            {i + 1}. {id}
-                                        </p>
-                                    ))}
-                                </div>
-                            )} */}
-
                             {/* Footer */}
-                            <div className="mt-5 pt-4 border-t border-dashed border-gray-200 text-center">
-                                <p className="text-xs font-semibold text-gray-700 mb-0.5">Thank you for your order!</p>
-                                <p className="text-[11px] text-gray-400">We'll deliver to your address shortly.</p>
-                                <p className="text-[10px] text-gray-300 mt-3">
+                            <div className="mt-4 pt-3 text-center" style={{ borderTop: '1px dashed var(--border)' }}>
+                                <p className="text-xs font-semibold mb-0.5" style={{ color: 'var(--text-secondary)' }}>Thank you for your order!</p>
+                                <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>We'll deliver to your address shortly.</p>
+                                <p className="text-[10px] mt-2" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
                                     {dateStr} · {timeStr}
                                 </p>
                             </div>

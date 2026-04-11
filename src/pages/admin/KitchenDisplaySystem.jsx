@@ -334,17 +334,40 @@ function KitchenDisplaySystem() {
             });
         };
 
+        const handleOrderItemsUpdated = (data) => {
+            console.log('KDS: Items updated on order:', data.orderId);
+            setOrders((prevOrders) =>
+                prevOrders.map((order) => {
+                    if (order._id === data._id || order.orderId === data.orderId) {
+                        return {
+                            ...order,
+                            items: data.items,
+                            totalAmount: data.totalAmount,
+                            updatedAt: data.updatedAt,
+                        };
+                    }
+                    return order;
+                })
+            );
+            addNotification({
+                type: 'info',
+                message: `Order #${data.orderId} has been updated`,
+            });
+        };
+
         // Listen to admin panel events (includes new orders from all users)
         socket.on('orderCreated', handleNewOrder);
         socket.on('orderStatusUpdated', handleOrderStatusUpdate);
         socket.on('orderCancelled', handleOrderCancelled);
         socket.on('orderItemsAppended', handleOrderItemsAppended);
+        socket.on('orderItemsUpdated', handleOrderItemsUpdated);
 
         socketListenersRef.current = {
             handleNewOrder,
             handleOrderStatusUpdate,
             handleOrderCancelled,
             handleOrderItemsAppended,
+            handleOrderItemsUpdated,
         };
 
         console.log('✓ KDS: Socket listeners registered');
@@ -354,6 +377,7 @@ function KitchenDisplaySystem() {
             socket.off('orderStatusUpdated', handleOrderStatusUpdate);
             socket.off('orderCancelled', handleOrderCancelled);
             socket.off('orderItemsAppended', handleOrderItemsAppended);
+            socket.off('orderItemsUpdated', handleOrderItemsUpdated);
             console.log('KDS: Socket listeners removed');
         };
     }, [socket, addNotification]);

@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MainLayout from '../../components/layouts/MainLayout';
 import { useUI } from '../../context/UIContext';
@@ -29,7 +29,6 @@ function PlaceOrderPage() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [showReceipt, setShowReceipt] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [orderCount, setOrderCount] = useState(0);
     const [placedOrderIds, setPlacedOrderIds] = useState([]);
     const [placedAt, setPlacedAt] = useState(null);
     const [receiptItems, setReceiptItems] = useState([]);
@@ -117,7 +116,7 @@ function PlaceOrderPage() {
         addNotification({ type: 'success', message: 'Order cleared' });
     }, [clearCart, addNotification]);
 
-    // ── Edit-mode checkout: append only the delta items ──
+    // ── Edit-mode checkout: replace the full items list on the existing order ──
     const handleAppendCheckout = async (e) => {
         e.preventDefault();
         if (cartItems.length === 0) {
@@ -126,7 +125,6 @@ function PlaceOrderPage() {
         }
         setIsProcessing(true);
         try {
-            // Send the full current cart; backend computes the diff
             const items = cartItems.map((item) => ({
                 productName: item.name,
                 productDescription: item.description || '',
@@ -135,16 +133,15 @@ function PlaceOrderPage() {
                 subtotal: item.price * item.quantity,
             }));
 
-            const response = await orderAPI.appendItems(editContext.orderMongoId, items);
+            await orderAPI.updateItems(editContext.orderMongoId, items);
 
             clearCart();
 
             addNotification({
                 type: 'success',
-                message: `Items added to order #${editContext.orderId} successfully!`,
+                message: `Order #${editContext.orderId} updated successfully!`,
             });
 
-            // Navigate back to KDS
             navigate('/admin/kitchen-display');
         } catch (error) {
             console.error('Append items error:', error);
@@ -190,7 +187,6 @@ function PlaceOrderPage() {
             const orderId = createdOrder._id || createdOrder.orderId;
 
             clearCart();
-            setOrderCount(1);
             setReceiptItems(snapshotItems);
             setReceiptTotal(snapshotTotal);
             setReceiptAddress(snapshotAddress);
@@ -240,14 +236,17 @@ function PlaceOrderPage() {
         <MainLayout fullScreen={true}>
             {/* Edit-mode banner */}
             {editContext && (
-                <div className="flex items-center gap-3 px-4 py-2 bg-blue-600 text-white text-sm font-medium">
-                    <span>
-                        Editing Order <strong>#{editContext.orderId}</strong> — add items to the existing order.
-                        Only quantities above the current order will be appended.
+                <div className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium flex-shrink-0" style={{ backgroundColor: 'var(--primary)', color: '#fff' }}>
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span className="flex-1">
+                        Editing Order <strong>#{editContext.orderId}</strong> — modify items then click Update Order.
                     </span>
                     <button
                         onClick={() => { clearCart(); navigate('/admin/kitchen-display'); }}
-                        className="ml-auto text-white/80 hover:text-white underline text-xs"
+                        className="text-white/80 hover:text-white text-xs font-semibold underline underline-offset-2 flex-shrink-0"
+                        aria-label="Cancel editing and go back"
                     >
                         Cancel
                     </button>
@@ -271,8 +270,14 @@ function PlaceOrderPage() {
                             ))}
                         </div>
                         {filteredProducts.length === 0 && (
-                            <div className="text-center py-8 sm:py-12">
-                                <p className="text-xs sm:text-sm" style={{ color: 'var(--text-muted)' }}>No items found for this search or category</p>
+                            <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                                <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'var(--bg-surface-3)' }}>
+                                    <svg className="w-7 h-7" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>No items found</p>
+                                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Try a different search or category</p>
                             </div>
                         )}
                     </div>
@@ -314,19 +319,24 @@ function PlaceOrderPage() {
                     />
 
                     {showSuccessModal && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div
+                            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="success-modal-title"
+                        >
                             <div
                                 className="rounded-2xl shadow-2xl max-w-md w-full p-8 text-center animate-fade-in"
                                 style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
                             >
-                                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: 'rgba(16,185,129,0.12)' }}>
-                                    <svg className="w-10 h-10" style={{ color: 'var(--success)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: 'rgba(16,185,129,0.12)' }}>
+                                    <svg className="w-9 h-9" style={{ color: 'var(--success)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                                     </svg>
                                 </div>
-                                <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Order Successful!</h2>
-                                <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
-                                    Your order has been placed successfully. You can track its status in the "My Orders" section.
+                                <h2 id="success-modal-title" className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Order placed!</h2>
+                                <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+                                    Your order is confirmed. You can track its status in My Orders.
                                 </p>
                                 <div className="flex flex-col gap-3">
                                     <button
@@ -334,10 +344,12 @@ function PlaceOrderPage() {
                                             setShowSuccessModal(false);
                                             navigate('/user/my-orders', { state: { refresh: true } });
                                         }}
-                                        className="w-full font-semibold py-3 rounded-lg shadow-md transition-all active:scale-95 min-h-[44px]"
+                                        className="w-full font-semibold py-3 rounded-lg shadow-sm transition-all active:scale-95 min-h-[44px]"
                                         style={{ backgroundColor: 'var(--primary)', color: '#fff' }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-dark)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary)'}
                                     >
-                                        View My Orders
+                                        Track my order
                                     </button>
                                     <button
                                         onClick={() => {
@@ -347,7 +359,7 @@ function PlaceOrderPage() {
                                         className="w-full font-semibold py-3 rounded-lg transition-all active:scale-95 min-h-[44px]"
                                         style={{ backgroundColor: 'var(--bg-surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
                                     >
-                                        Add More Items
+                                        Order more items
                                     </button>
                                 </div>
                             </div>

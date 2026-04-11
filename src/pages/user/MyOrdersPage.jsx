@@ -1,13 +1,13 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MainLayout from '../../components/layouts/MainLayout';
 import { orderAPI } from '../../services/orderAPI';
 import { useUI } from '../../context/UIContext';
 import {
-    HiOutlineX,
     HiOutlineClock, HiOutlineCheckCircle,
     HiOutlineCheck, HiOutlineXCircle,
     HiOutlineShoppingBag, HiOutlinePlus,
+    HiRefresh,
 } from 'react-icons/hi';
 import { useSocket } from '../../context/SocketContext';
 import SearchInput from '../../components/ui/SearchInput';
@@ -277,21 +277,21 @@ function MyOrdersPage() {
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-20 gap-3">
                         <div className="spinner" />
-                        <p className="text-sm text-gray-500">Loading your orders…</p>
+                        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading your orders…</p>
                     </div>
                 ) : filteredOrders.length > 0 ? (
                     <>
                         {/* result count ── */}
-                        <p className="text-xs text-gray-500 font-medium">
+                        <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
                             {searchTerm ? (
                                 <>
                                     {filteredOrders.length} {filteredOrders.length === 1 ? 'result' : 'results'} found
-                                    {statusFilter !== 'all' && ` (${statusFilter})`}
+                                    {statusFilter !== 'all' && ` · ${statusFilter}`}
                                 </>
                             ) : (
                                 <>
-                                    {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'}
-                                    {statusFilter !== 'all' && ` in ${statusFilter}`}
+                                    Showing {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'}
+                                    {statusFilter !== 'all' && ` · ${statusFilter}`}
                                 </>
                             )}
                         </p>
@@ -478,9 +478,10 @@ function MyOrdersPage() {
                                 </p>
                                 <button
                                     onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}
-                                    className="text-sm font-medium transition-colors"
+                                    className="inline-flex items-center gap-1.5 text-sm font-semibold transition-colors"
                                     style={{ color: 'var(--primary)' }}
                                 >
+                                    <HiRefresh className="w-4 h-4" />
                                     Clear filters
                                 </button>
                             </>
@@ -491,20 +492,19 @@ function MyOrdersPage() {
                                 </h3>
                                 <p className="text-sm max-w-xs mb-5" style={{ color: 'var(--text-muted)' }}>
                                     {statusFilter !== 'all'
-                                        ? `You don't have any orders in "${statusFilter}" status. Try a different status or `
-                                        : 'You haven\'t placed any orders yet. Start by '}
-                                    placing your first order.
+                                        ? `You don't have any ${statusFilter} orders. Try a different filter.`
+                                        : "You haven't placed any orders yet. Browse the menu and place your first order!"}
                                 </p>
-                                {/* <button
+                                <button
                                     onClick={() => navigate('/user/place-order')}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm min-h-[44px]"
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm min-h-[44px] active:scale-95"
                                     style={{ backgroundColor: 'var(--primary)', color: '#fff' }}
                                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-dark)'}
                                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary)'}
                                 >
                                     <HiOutlinePlus className="w-4 h-4" />
-                                    Place Order
-                                </button> */}
+                                    Browse Menu
+                                </button>
                             </>
                         )}
                     </div>
