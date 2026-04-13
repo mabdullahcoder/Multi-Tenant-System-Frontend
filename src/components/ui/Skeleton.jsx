@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * Skeleton Component - Dark Theme
+ * Skeleton Component - Theme-aware
  */
 const Skeleton = React.memo(function Skeleton({
     variant = 'rectangular',
@@ -10,8 +10,6 @@ const Skeleton = React.memo(function Skeleton({
     className = '',
     count = 1,
 }) {
-    const baseClass = 'bg-gray-800 animate-pulse';
-
     const variantClass = {
         text: 'h-4 rounded',
         circular: 'rounded-full',
@@ -21,6 +19,7 @@ const Skeleton = React.memo(function Skeleton({
     const style = {
         width: width || (variant === 'circular' ? '40px' : '100%'),
         height: height || (variant === 'text' ? '1rem' : variant === 'circular' ? '40px' : '80px'),
+        backgroundColor: 'var(--bg-surface-3)',
     };
 
     if (count > 1) {
@@ -29,7 +28,7 @@ const Skeleton = React.memo(function Skeleton({
                 {Array.from({ length: count }).map((_, index) => (
                     <div
                         key={index}
-                        className={`${baseClass} ${variantClass} ${className}`.trim()}
+                        className={`animate-pulse ${variantClass} ${className}`.trim()}
                         style={style}
                     />
                 ))}
@@ -39,7 +38,7 @@ const Skeleton = React.memo(function Skeleton({
 
     return (
         <div
-            className={`${baseClass} ${variantClass} ${className}`.trim()}
+            className={`animate-pulse ${variantClass} ${className}`.trim()}
             style={style}
         />
     );

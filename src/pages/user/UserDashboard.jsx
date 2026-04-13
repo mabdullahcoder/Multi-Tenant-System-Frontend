@@ -26,7 +26,10 @@ function StatCard({ label, value, trend, trendPositive }) {
                 </div>
             </div>
             {trend && (
-                <p className={`text-xs font-medium ${trendPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+                <p
+                    className="text-xs font-semibold"
+                    style={{ color: trendPositive ? 'var(--success)' : 'var(--danger)' }}
+                >
                     {trendPositive ? '+' : ''}{trend}%
                 </p>
             )}

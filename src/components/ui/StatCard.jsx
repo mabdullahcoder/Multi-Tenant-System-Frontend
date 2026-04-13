@@ -5,7 +5,7 @@ function StatCard({ title, value, change, changeType = 'increase', icon: Icon, i
 
     return (
         <div
-            className={`relative rounded-xl border p-5 sm:p-6 transition-all duration-200 group ${className}`}
+            className={`relative rounded-xl border p-4 sm:p-5 transition-all duration-200 group ${className}`}
             style={{
                 backgroundColor: 'var(--bg-surface)',
                 borderColor: 'var(--border)',
@@ -16,25 +16,37 @@ function StatCard({ title, value, change, changeType = 'increase', icon: Icon, i
         >
             {/* Icon */}
             {Icon && (
-                <div className={`inline-flex p-2.5 rounded-xl ${iconBgColor} mb-4`}>
+                <div className={`inline-flex p-2.5 rounded-xl ${iconBgColor} mb-3`}>
                     <Icon className={`w-5 h-5 ${iconColor}`} />
                 </div>
             )}
 
             {/* Title */}
-            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>
+            <p
+                className="text-[11px] font-semibold uppercase tracking-widest mb-1.5 leading-none"
+                style={{ color: 'var(--text-secondary)' }}
+            >
                 {title}
             </p>
 
             {/* Value */}
-            <p className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+            <p
+                className="text-2xl sm:text-3xl font-bold mb-2 leading-tight"
+                style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
+            >
                 {value}
             </p>
 
             {/* Trend */}
             {(change || trend) && (
-                <div className="flex items-center gap-1">
-                    <span className={`inline-flex items-center gap-0.5 text-xs font-semibold px-1.5 py-0.5 rounded-md ${isPositive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                <div className="flex items-center gap-1.5">
+                    <span
+                        className={`inline-flex items-center gap-0.5 text-xs font-semibold px-1.5 py-0.5 rounded-md ${isPositive ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}
+                        style={isPositive
+                            ? { color: 'var(--success)' }
+                            : { color: 'var(--danger)' }
+                        }
+                    >
                         {isPositive ? <HiArrowUp className="w-3 h-3" /> : <HiArrowDown className="w-3 h-3" />}
                         {change || `${trend?.value}%`}
                     </span>

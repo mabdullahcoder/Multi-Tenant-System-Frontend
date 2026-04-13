@@ -111,7 +111,7 @@ function ActivityLogsPage() {
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-3">
                             <div className="spinner" />
-                            <p className="text-sm text-gray-500">Loading logs…</p>
+                            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading logs…</p>
                         </div>
                     ) : logs.length > 0 ? (
                         <div className="overflow-x-auto">
@@ -129,10 +129,10 @@ function ActivityLogsPage() {
                                 <TableBody>
                                     {logs.map((log) => (
                                         <TableRow key={log._id}>
-                                            <TableCell className="font-medium text-gray-900">
+                                            <TableCell className="font-medium" style={{ color: 'var(--text-primary)' }}>
                                                 {log.userId?.firstName} {log.userId?.lastName}
                                             </TableCell>
-                                            <TableCell className="capitalize text-gray-700">
+                                            <TableCell className="capitalize" style={{ color: 'var(--text-secondary)' }}>
                                                 {log.action.replace(/_/g, ' ')}
                                             </TableCell>
                                             <TableCell>
@@ -140,13 +140,13 @@ function ActivityLogsPage() {
                                                     {log.status}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="font-mono text-xs text-gray-600">
+                                            <TableCell className="font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>
                                                 {log.ipAddress || '—'}
                                             </TableCell>
-                                            <TableCell className="text-gray-600 text-sm max-w-[160px] truncate">
+                                            <TableCell className="text-sm max-w-[160px] truncate" style={{ color: 'var(--text-secondary)' }}>
                                                 {log.device || '—'}
                                             </TableCell>
-                                            <TableCell className="text-gray-600 text-sm whitespace-nowrap">
+                                            <TableCell className="text-sm whitespace-nowrap" style={{ color: 'var(--text-secondary)' }}>
                                                 {new Date(log.createdAt).toLocaleString()}
                                             </TableCell>
                                         </TableRow>
@@ -156,11 +156,11 @@ function ActivityLogsPage() {
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                                <HiOutlineClipboardList className="w-7 h-7 text-gray-400" />
+                            <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: 'var(--bg-surface-3)' }}>
+                                <HiOutlineClipboardList className="w-7 h-7" style={{ color: 'var(--text-muted)' }} />
                             </div>
-                            <p className="text-sm font-semibold text-gray-700">No activity logs found</p>
-                            <p className="text-xs text-gray-400 mt-1">Try adjusting your filters</p>
+                            <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>No activity logs found</p>
+                            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Try adjusting your filters</p>
                         </div>
                     )}
                 </div>

@@ -179,7 +179,7 @@ function StatusSwitcher({
                             {/* Standard Flow Section */}
                             {suggested.length > 0 && (
                                 <div className="px-1.5 py-1">
-                                    <p className="px-2 pb-1.5 pt-0.5 text-[9px] font-bold text-blue-500 uppercase tracking-tight flex items-center gap-1">
+                                    <p className="px-2 pb-1.5 pt-0.5 text-[9px] font-bold uppercase tracking-tight flex items-center gap-1" style={{ color: 'var(--primary)' }}>
                                         <HiOutlineLightningBolt className="w-2.5 h-2.5" />
                                         Suggested Actions
                                     </p>
@@ -224,7 +224,12 @@ function StatusSwitcher({
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                             >
-                                                <div className="p-1 rounded-md bg-gray-100 text-gray-500 group-hover:bg-amber-50 group-hover:text-amber-600 transition-colors">
+                                                <div
+                                                    className="p-1 rounded-md transition-colors"
+                                                    style={{ backgroundColor: 'var(--bg-surface-3)', color: 'var(--text-muted)' }}
+                                                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(245,158,11,0.1)'; e.currentTarget.style.color = 'var(--warning)'; }}
+                                                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-surface-3)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                                                >
                                                     <OIcon className="w-3.5 h-3.5" />
                                                 </div>
                                                 {cfg.label}
@@ -236,7 +241,7 @@ function StatusSwitcher({
 
                             {suggested.length === 0 && overrides.length === 0 && (
                                 <div className="px-3 py-4 text-center">
-                                    <p className="text-xs text-gray-400 italic">No further actions available.</p>
+                                    <p className="text-xs italic" style={{ color: 'var(--text-muted)' }}>No further actions available.</p>
                                 </div>
                             )}
                         </motion.div>

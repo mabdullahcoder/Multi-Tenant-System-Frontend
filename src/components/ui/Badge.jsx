@@ -1,6 +1,6 @@
 /**
  * Badge — theme-aware via CSS variables.
- * Hardcoded Tailwind color classes are avoided so dark mode works correctly.
+ * Uses semantic colors with proper contrast in both light and dark modes.
  */
 const VARIANT_STYLES = {
     default: {
@@ -9,19 +9,19 @@ const VARIANT_STYLES = {
         borderColor: 'var(--border)',
     },
     success: {
-        backgroundColor: 'rgba(16,185,129,0.1)',
+        backgroundColor: 'rgba(5,150,105,0.1)',
         color: 'var(--success)',
-        borderColor: 'rgba(16,185,129,0.25)',
+        borderColor: 'rgba(5,150,105,0.25)',
     },
     warning: {
-        backgroundColor: 'rgba(245,158,11,0.1)',
+        backgroundColor: 'rgba(217,119,6,0.1)',
         color: 'var(--warning)',
-        borderColor: 'rgba(245,158,11,0.25)',
+        borderColor: 'rgba(217,119,6,0.25)',
     },
     danger: {
-        backgroundColor: 'rgba(239,68,68,0.1)',
+        backgroundColor: 'rgba(220,38,38,0.1)',
         color: 'var(--danger)',
-        borderColor: 'rgba(239,68,68,0.25)',
+        borderColor: 'rgba(220,38,38,0.25)',
     },
     info: {
         backgroundColor: 'rgba(59,130,246,0.1)',

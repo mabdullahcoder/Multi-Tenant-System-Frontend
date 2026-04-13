@@ -17,7 +17,6 @@ export const SocketProvider = ({ children }) => {
         if (!isAuthenticated || !token) {
             // Cleanup if logged out
             if (socketRef.current) {
-                console.log('User not authenticated, disconnecting socket');
                 socketRef.current.removeAllListeners();
                 socketRef.current.disconnect();
                 socketRef.current = null;
@@ -34,8 +33,6 @@ export const SocketProvider = ({ children }) => {
         }
 
         try {
-            console.log('🔌 Initializing Socket.IO connection...');
-
             const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
                 auth: {
                     token: token,
@@ -48,9 +45,6 @@ export const SocketProvider = ({ children }) => {
             });
 
             const handleConnect = () => {
-                console.log('Socket CONNECTED | Socket ID:', newSocket.id);
-                console.log('User Role:', user?.role);
-                console.log('Transport:', newSocket.io.engine.transport.name);
                 setIsConnected(true);
                 reconnectAttemptRef.current = 0;
             };
@@ -59,22 +53,14 @@ export const SocketProvider = ({ children }) => {
                 console.error('Socket connection error:', err.message);
                 setIsConnected(false);
                 reconnectAttemptRef.current += 1;
-                console.warn(
-                    `Connection attempt ${reconnectAttemptRef.current}/${maxReconnectAttemptsRef.current}`
-                );
             };
 
             const handleDisconnect = (reason) => {
-                console.log('Socket disconnected | Reason:', reason);
                 setIsConnected(false);
-
-                if (reason !== 'io client namespace disconnect') {
-                    console.warn('Unexpected socket disconnect:', reason);
-                }
             };
 
             const handleError = (error) => {
-                console.error('✗ Socket error:', error);
+                console.error('Socket error:', error);
                 setIsConnected(false);
             };
 
@@ -90,7 +76,6 @@ export const SocketProvider = ({ children }) => {
         }
 
         return () => {
-            console.log('Cleaning up Socket.IO connection');
             if (socketRef.current) {
                 socketRef.current.removeAllListeners();
                 socketRef.current.disconnect();

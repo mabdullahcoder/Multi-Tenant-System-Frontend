@@ -20,10 +20,10 @@ function Field({ label, required, error, children }) {
     return (
         <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
-                {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+                {label}{required && <span style={{ color: 'var(--danger)' }} className="ml-0.5">*</span>}
             </label>
             {children}
-            {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
+            {error && <p className="text-xs mt-0.5" style={{ color: 'var(--danger)' }}>{error}</p>}
         </div>
     );
 }
@@ -34,11 +34,11 @@ function StyledInput({ error, className = '', ...props }) {
             className={`w-full px-3.5 py-2.5 rounded-lg border text-sm min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${className}`}
             style={{
                 backgroundColor: 'var(--bg-surface)',
-                borderColor: error ? '#ef4444' : 'var(--border)',
+                borderColor: error ? 'var(--danger)' : 'var(--border)',
                 color: 'var(--text-primary)',
             }}
             onFocus={(e) => { if (!error) e.currentTarget.style.borderColor = 'var(--primary)'; }}
-            onBlur={(e) => { if (!error) e.currentTarget.style.borderColor = 'var(--border)'; }}
+            onBlur={(e) => { if (!error) e.currentTarget.style.borderColor = error ? 'var(--danger)' : 'var(--border)'; }}
             {...props}
         />
     );
@@ -183,7 +183,12 @@ function CreateUserModal({ isOpen, onClose, onSuccess, currentUserRole }) {
                         <Field label="Password" required error={errors.password}>
                             <div className="relative">
                                 <StyledInput type={showPwd ? 'text' : 'password'} placeholder="Min. 6 characters" value={form.password} onChange={set('password')} error={errors.password} className="pr-10" />
-                                <button type="button" onClick={() => setShowPwd((p) => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                                <button type="button" onClick={() => setShowPwd((p) => !p)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                                    style={{ color: 'var(--text-muted)' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                                >
                                     {showPwd ? <HiOutlineEyeOff className="w-4 h-4" /> : <HiOutlineEye className="w-4 h-4" />}
                                 </button>
                             </div>
@@ -193,7 +198,12 @@ function CreateUserModal({ isOpen, onClose, onSuccess, currentUserRole }) {
                         <Field label="Confirm Password" required error={errors.confirmPassword}>
                             <div className="relative">
                                 <StyledInput type={showCfm ? 'text' : 'password'} placeholder="Re-enter password" value={form.confirmPassword} onChange={set('confirmPassword')} error={errors.confirmPassword} className="pr-10" />
-                                <button type="button" onClick={() => setShowCfm((p) => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                                <button type="button" onClick={() => setShowCfm((p) => !p)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                                    style={{ color: 'var(--text-muted)' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                                >
                                     {showCfm ? <HiOutlineEyeOff className="w-4 h-4" /> : <HiOutlineEye className="w-4 h-4" />}
                                 </button>
                             </div>
@@ -371,7 +381,7 @@ function ManageUsersPage() {
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-3">
                             <div className="spinner" />
-                            <p className="text-sm text-gray-500">Loading {activeTab === 'admin' ? 'admins' : 'users'}…</p>
+                            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading {activeTab === 'admin' ? 'admins' : 'users'}…</p>
                         </div>
                     ) : users.length > 0 ? (
                         <div className="overflow-x-auto">
@@ -391,17 +401,21 @@ function ManageUsersPage() {
                                     {users.map((user) => {
                                         const roleCfg = ROLE_CONFIG[user.role] || ROLE_CONFIG.user;
                                         const RoleIcon = roleCfg.icon;
-                                        const avatarCls = {
-                                            'super-admin': 'bg-red-100 text-red-700',
-                                            'admin': 'bg-amber-100 text-amber-700',
-                                            'user': 'bg-blue-100 text-blue-700',
-                                        }[user.role] || 'bg-blue-100 text-blue-700';
+                                        const avatarColors = {
+                                            'super-admin': { bg: 'rgba(239,68,68,0.12)', color: 'var(--danger)' },
+                                            'admin': { bg: 'rgba(245,158,11,0.12)', color: 'var(--warning)' },
+                                            'user': { bg: 'rgba(59,130,246,0.12)', color: 'var(--primary)' },
+                                        };
+                                        const avatarStyle = avatarColors[user.role] || avatarColors.user;
 
                                         return (
                                             <TableRow key={user._id}>
                                                 <TableCell>
                                                     <div className="flex items-center gap-2.5">
-                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${avatarCls}`}>
+                                                        <div
+                                                            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                                                            style={{ backgroundColor: avatarStyle.bg, color: avatarStyle.color }}
+                                                        >
                                                             <span className="text-xs font-bold">
                                                                 {user.firstName?.[0]}{user.lastName?.[0]}
                                                             </span>

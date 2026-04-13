@@ -14,6 +14,7 @@ import {
     HiOutlineCollection,
     HiOutlineFire,
     HiOutlineShoppingCart,
+    HiOutlineClipboardList,
 } from 'react-icons/hi';
 
 const USER_MENU = [
@@ -31,8 +32,9 @@ const ADMIN_MENU = [
     { icon: HiOutlineBell, label: 'Orders', path: '/admin/orders' },
     { icon: HiOutlineCollection, label: 'Manage Menu', path: '/admin/menu' },
     { icon: HiOutlineFlag, label: 'Users', path: '/admin/users' },
-    { icon: HiOutlineUser, label: 'Activity Logs', path: '/admin/activity-logs' },
-    // Customer-facing views — flat, no section header
+    { icon: HiOutlineClipboardList, label: 'Activity Logs', path: '/admin/activity-logs' },
+    { icon: HiOutlineUser, label: 'Profile', path: '/admin/profile' },
+    // Customer-facing views
     { icon: HiOutlineShoppingCart, label: 'Order Menu', path: '/user/place-order' },
     { icon: HiOutlineBell, label: 'User Orders', path: '/user/my-orders' },
 ];
@@ -114,7 +116,10 @@ function Sidebar() {
                             </div>
                             <button
                                 onClick={collapseSidebar}
-                                className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 transition-colors flex-shrink-0"
+                                className="w-8 h-8 rounded-md flex items-center justify-center transition-colors flex-shrink-0"
+                                style={{ color: 'var(--text-muted)' }}
+                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'var(--text-muted)'; }}
                                 aria-label="Collapse sidebar"
                             >
                                 <HiChevronLeft className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />

@@ -152,7 +152,6 @@ function PlaceOrderPage() {
 
             navigate('/admin/kitchen-display');
         } catch (error) {
-            console.error('Append items error:', error);
             addNotification({
                 type: 'error',
                 message: error.response?.data?.message || 'Failed to add items to order',
@@ -206,7 +205,6 @@ function PlaceOrderPage() {
                 message: `Order placed successfully with ${cartItems.length} items!`,
             });
         } catch (error) {
-            console.error('Checkout error:', error);
             addNotification({ type: 'error', message: 'Something went wrong while placing your order. Please try again.' });
         } finally {
             setIsProcessing(false);

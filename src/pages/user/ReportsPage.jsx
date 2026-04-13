@@ -133,11 +133,9 @@ function ReportsPage() {
 
                 {/* Generate Report */}
                 <Card>
-                    <div className="border-b border-gray-200 pb-4 mb-6">
-                        <h2 className="text-xl font-bold text-gray-900 transition-colors">
-                            Generate New Report
-                        </h2>
-                        <p className="text-sm text-gray-500 mt-1 transition-colors">
+                    <div className="pb-4 mb-5" style={{ borderBottom: '1px solid var(--border)' }}>
+                        <h2 className="text-heading-4">Generate New Report</h2>
+                        <p className="text-description mt-1">
                             Create custom reports with optional date range filtering
                         </p>
                     </div>
@@ -232,11 +230,9 @@ function ReportsPage() {
 
                 {/* Reports List */}
                 <Card>
-                    <div className="border-b border-gray-200 pb-4 mb-6">
-                        <h2 className="text-xl font-bold text-gray-900 transition-colors">
-                            Your Reports
-                        </h2>
-                        <p className="text-sm text-gray-500 mt-1 transition-colors">
+                    <div className="pb-4 mb-5" style={{ borderBottom: '1px solid var(--border)' }}>
+                        <h2 className="text-heading-4">Your Reports</h2>
+                        <p className="text-description mt-1">
                             View and download your generated reports
                         </p>
                     </div>
@@ -271,7 +267,8 @@ function ReportsPage() {
                                         <TableCell>
                                             <button
                                                 onClick={() => handleDownload(report._id, report)}
-                                                className="text-blue-600 hover:underline flex items-center gap-1 transition-colors"
+                                                className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                                style={{ color: 'var(--primary)' }}
                                                 disabled={report.status !== 'completed'}
                                             >
                                                 <ArrowDownTrayIcon className="w-4 h-4" />
@@ -284,13 +281,13 @@ function ReportsPage() {
                         </Table>
                     ) : (
                         <div className="text-center py-12">
-                            <svg className="w-16 h-16 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-14 h-14 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            <p className="text-gray-500 transition-colors">
+                            <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                                 No reports generated yet
                             </p>
-                            <p className="text-sm text-gray-400 mt-1 transition-colors">
+                            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                                 Generate your first report using the form above
                             </p>
                         </div>

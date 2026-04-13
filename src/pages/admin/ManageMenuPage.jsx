@@ -44,7 +44,13 @@ function IconBtn({ onClick, title, hoverColor = 'blue', children }) {
 /** Active / Hidden badge */
 function StatusBadge({ active }) {
     return (
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${active ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+        <span
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+            style={active
+                ? { backgroundColor: 'rgba(5,150,105,0.12)', color: 'var(--success)', border: '1px solid rgba(5,150,105,0.25)' }
+                : { backgroundColor: 'var(--bg-surface-3)', color: 'var(--text-muted)', border: '1px solid var(--border)' }
+            }
+        >
             {active ? <HiOutlineCheck className="w-3 h-3" /> : <HiOutlineEyeOff className="w-3 h-3" />}
             {active ? 'Active' : 'Hidden'}
         </span>
@@ -101,6 +107,81 @@ function Toggle({ checked, onChange, label, id }) {
     );
 }
 
+/**
+ * MenuItemCard
+ *
+ * Owns its own `imgError` state so React — not the DOM — controls
+ * whether the image or the fallback placeholder is shown.
+ * When the URL changes (e.g. after an edit) the state resets automatically
+ * via the key derived from the URL.
+ */
+function MenuItemCard({ item, onEdit, onDelete }) {
+    const [imgError, setImgError] = useState(false);
+    const hasImage = Boolean(item.image?.trim()) && !imgError;
+
+    return (
+        <div
+            className={`rounded-xl border flex flex-col transition-shadow hover:shadow-md ${!item.isActive ? 'opacity-60' : ''}`}
+            style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}
+        >
+            {/* ── Image area ── */}
+            <div
+                className="relative overflow-hidden rounded-t-xl flex-shrink-0"
+                style={{ height: '120px', backgroundColor: 'var(--bg-surface-3)' }}
+            >
+                {hasImage ? (
+                    <img
+                        key={item.image}
+                        src={item.image.trim()}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={() => setImgError(true)}
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>
+                        <HiOutlineCollection className="w-8 h-8" />
+                    </div>
+                )}
+                <div className="absolute top-1.5 left-1.5">
+                    <StatusBadge active={item.isActive} />
+                </div>
+            </div>
+
+            {/* ── Card body ── */}
+            <div className="px-2.5 pt-2 pb-2 flex flex-col gap-0.5 flex-1">
+                <p className="text-[10px] font-medium truncate" style={{ color: 'var(--primary)' }}>
+                    {item.category?.name}
+                </p>
+                <h3 className="text-xs font-semibold leading-snug line-clamp-1" style={{ color: 'var(--text-primary)' }}>
+                    {item.name}
+                </h3>
+
+                {/* Price + actions */}
+                <div
+                    className="flex items-center justify-between mt-auto pt-1.5"
+                    style={{ borderTop: '1px solid var(--border)' }}
+                >
+                    <div className="leading-tight">
+                        {item.originalPrice && (
+                            <p className="text-[10px] line-through" style={{ color: 'var(--text-muted)' }}>
+                                Rs {item.originalPrice}
+                            </p>
+                        )}
+                        <p className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
+                            Rs {item.price}
+                        </p>
+                    </div>
+                    <div className="flex gap-0 flex-shrink-0">
+                        <IconBtn onClick={onEdit} title="Edit item" hoverColor="blue"><HiOutlinePencil className="w-3.5 h-3.5" /></IconBtn>
+                        <IconBtn onClick={onDelete} title="Delete item" hoverColor="red"><HiOutlineTrash className="w-3.5 h-3.5" /></IconBtn>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 /* ─────────────────────────────────────────────
    Category Form Modal
 ───────────────────────────────────────────── */
@@ -123,71 +204,115 @@ function CategoryModal({ initial, onSave, onClose }) {
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
             <div
-                className="rounded-2xl shadow-2xl w-full max-w-md"
-                style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+                className="rounded-2xl shadow-2xl w-full max-w-md flex flex-col"
+                style={{
+                    backgroundColor: 'var(--bg-surface)',
+                    border: '1px solid var(--border)',
+                    maxHeight: 'min(90vh, 600px)',
+                }}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-                    <h2 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+                <div
+                    className="flex items-center justify-between px-5 py-4 flex-shrink-0"
+                    style={{ borderBottom: '1px solid var(--border)' }}
+                >
+                    <h2
+                        className="text-base font-semibold leading-snug"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
                         {initial ? 'Edit Category' : 'New Category'}
                     </h2>
                     <button
                         type="button" onClick={onClose} aria-label="Close"
-                        className="p-1.5 rounded-lg transition-colors"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors flex-shrink-0"
                         style={{ color: 'var(--text-muted)' }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                     >
-                        <HiOutlineX className="w-5 h-5" />
+                        <HiOutlineX className="w-4 h-4" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-                    <div className="form-group">
-                        <label className="label-base">
-                            Category Name <span style={{ color: 'var(--danger)' }}>*</span>
-                        </label>
-                        <input
-                            type="text" value={form.name} autoFocus required
-                            onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            className="input-base" placeholder="e.g. Pizzas"
-                        />
-                    </div>
+                {/* Body */}
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+                    <div className="overflow-y-auto flex-1 scrollbar-thin px-5 py-5 space-y-4">
 
-                    <div className="form-group">
-                        <label className="label-base">Description</label>
-                        <input
-                            type="text" value={form.description}
-                            onChange={(e) => setForm({ ...form, description: e.target.value })}
-                            className="input-base" placeholder="Optional description"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="form-group">
-                            <label className="label-base">Sort Order</label>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                Category Name <span style={{ color: 'var(--danger)' }}>*</span>
+                            </label>
                             <input
-                                type="number" value={form.sortOrder} min="0"
-                                onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
-                                className="input-base"
+                                type="text" value={form.name} autoFocus required
+                                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                className="input-base" placeholder="e.g. Pizzas"
                             />
                         </div>
-                        <div className="form-group">
-                            <label className="label-base">Visibility</label>
-                            <div className="flex items-center h-[44px]">
-                                <Toggle
-                                    id="cat-active"
-                                    checked={form.isActive}
-                                    onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                                    label="Active"
+
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                Description
+                            </label>
+                            <input
+                                type="text" value={form.description}
+                                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                className="input-base" placeholder="Optional description"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                    Sort Order
+                                </label>
+                                <input
+                                    type="number" value={form.sortOrder} min="0"
+                                    onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
+                                    className="input-base"
                                 />
                             </div>
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                    Visibility
+                                </label>
+                                <div className="flex items-center" style={{ height: '44px' }}>
+                                    <Toggle
+                                        id="cat-active"
+                                        checked={form.isActive}
+                                        onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                                        label="Active"
+                                    />
+                                </div>
+                            </div>
                         </div>
+
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
-                        <button type="button" onClick={onClose} className="btn-md btn-outline">Cancel</button>
-                        <button type="submit" disabled={saving} className="btn-md btn-primary-solid">
+                    {/* Footer */}
+                    <div
+                        className="flex items-center justify-end gap-2.5 px-5 py-4 flex-shrink-0"
+                        style={{ borderTop: '1px solid var(--border)', backgroundColor: 'var(--bg-surface)' }}
+                    >
+                        <button
+                            type="button" onClick={onClose}
+                            className="btn-md"
+                            style={{
+                                backgroundColor: 'var(--bg-surface-3)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '0.5rem',
+                                padding: '0 1rem',
+                                minHeight: '40px',
+                                fontWeight: 500,
+                                fontSize: '0.875rem',
+                            }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit" disabled={saving}
+                            className="btn-md btn-primary-solid"
+                            style={{ minWidth: '120px' }}
+                        >
                             {saving ? 'Saving…' : 'Save Category'}
                         </button>
                     </div>
@@ -212,6 +337,12 @@ function ItemModal({ initial, categories, onSave, onClose }) {
             : EMPTY_ITEM
     );
     const [saving, setSaving] = useState(false);
+    const [imgPreviewError, setImgPreviewError] = useState(false);
+
+    const handleImageChange = (e) => {
+        setImgPreviewError(false);
+        setForm({ ...form, image: e.target.value });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -225,6 +356,8 @@ function ItemModal({ initial, categories, onSave, onClose }) {
         setSaving(false);
     };
 
+    const imageUrl = form.image?.trim();
+
     return (
         <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -232,138 +365,241 @@ function ItemModal({ initial, categories, onSave, onClose }) {
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
             <div
-                className="rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]"
-                style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+                className="rounded-2xl shadow-2xl w-full max-w-lg flex flex-col"
+                style={{
+                    backgroundColor: 'var(--bg-surface)',
+                    border: '1px solid var(--border)',
+                    maxHeight: 'min(92vh, 760px)',
+                }}
             >
-                {/* Sticky header */}
+                {/* ── Header ── */}
                 <div
-                    className="flex items-center justify-between px-6 py-4 flex-shrink-0 rounded-t-2xl"
-                    style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-surface)' }}
+                    className="flex items-start justify-between px-5 py-4 flex-shrink-0"
+                    style={{ borderBottom: '1px solid var(--border)' }}
                 >
-                    <h2 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        {initial ? 'Edit Menu Item' : 'Add New Item'}
-                    </h2>
+                    <div>
+                        <h2
+                            className="text-base font-semibold leading-snug"
+                            style={{ color: 'var(--text-primary)' }}
+                        >
+                            {initial ? 'Edit Menu Item' : 'Add New Item'}
+                        </h2>
+                        <p
+                            className="text-xs mt-0.5 leading-snug"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            {initial ? 'Update the details below' : 'Fill in the details to add a new item'}
+                        </p>
+                    </div>
                     <button
                         type="button" onClick={onClose} aria-label="Close"
-                        className="p-1.5 rounded-lg transition-colors"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors flex-shrink-0 ml-3"
                         style={{ color: 'var(--text-muted)' }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                     >
-                        <HiOutlineX className="w-5 h-5" />
+                        <HiOutlineX className="w-4 h-4" />
                     </button>
                 </div>
 
-                {/* Scrollable form */}
-                <form
-                    onSubmit={handleSubmit}
-                    className="overflow-y-auto flex-1 scrollbar-thin px-6 py-5 space-y-4"
-                >
-                    <div className="form-group">
-                        <label className="label-base">
-                            Category <span style={{ color: 'var(--danger)' }}>*</span>
-                        </label>
-                        <select
-                            value={form.category} required
-                            onChange={(e) => setForm({ ...form, category: e.target.value })}
-                            className="input-base"
-                        >
-                            <option value="">Select a category…</option>
-                            {categories.map((c) => (
-                                <option key={c._id} value={c._id}>{c.name}</option>
-                            ))}
-                        </select>
-                    </div>
+                {/* ── Scrollable form body ── */}
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+                    <div className="overflow-y-auto flex-1 scrollbar-thin px-5 py-5 space-y-4">
 
-                    <div className="form-group">
-                        <label className="label-base">
-                            Item Name <span style={{ color: 'var(--danger)' }}>*</span>
-                        </label>
-                        <input
-                            type="text" value={form.name} required autoFocus
-                            onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            className="input-base" placeholder="e.g. Margherita Pizza"
-                        />
-                    </div>
+                        {/* Category */}
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                Category <span style={{ color: 'var(--danger)' }}>*</span>
+                            </label>
+                            <select
+                                value={form.category} required
+                                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                                className="input-base"
+                                style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}
+                            >
+                                <option value="">Select a category…</option>
+                                {categories.map((c) => (
+                                    <option key={c._id} value={c._id}>{c.name}</option>
+                                ))}
+                            </select>
+                        </div>
 
-                    <div className="form-group">
-                        <label className="label-base">Description</label>
-                        <textarea
-                            value={form.description} rows={2}
-                            onChange={(e) => setForm({ ...form, description: e.target.value })}
-                            className="input-base resize-none"
-                            placeholder="Short description of the item"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="form-group">
-                            <label className="label-base">
-                                Price (Rs) <span style={{ color: 'var(--danger)' }}>*</span>
+                        {/* Item Name */}
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                Item Name <span style={{ color: 'var(--danger)' }}>*</span>
                             </label>
                             <input
-                                type="number" value={form.price} min="0" step="0.01" required
-                                onChange={(e) => setForm({ ...form, price: e.target.value })}
-                                className="input-base"
+                                type="text" value={form.name} required autoFocus
+                                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                className="input-base" placeholder="e.g. Margherita Pizza"
                             />
                         </div>
-                        <div className="form-group">
-                            <label className="label-base">Original Price (Rs)</label>
-                            <input
-                                type="number" value={form.originalPrice} min="0" step="0.01"
-                                onChange={(e) => setForm({ ...form, originalPrice: e.target.value })}
-                                className="input-base" placeholder="For discounts"
-                            />
-                        </div>
-                    </div>
 
-                    <div className="form-group">
-                        <label className="label-base">Image URL</label>
-                        <input
-                            type="text" value={form.image}
-                            onChange={(e) => setForm({ ...form, image: e.target.value })}
-                            className="input-base" placeholder="https://example.com/image.jpg"
-                        />
-                        {form.image && (
-                            <div
-                                className="mt-2 p-2 rounded-lg"
-                                style={{ backgroundColor: 'var(--bg-surface-3)', border: '1px solid var(--border)' }}
-                            >
-                                <img
-                                    src={form.image} alt="preview"
-                                    className="h-20 w-28 object-cover rounded-md"
-                                    onError={(e) => { e.target.style.display = 'none'; }}
+                        {/* Description */}
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                Description
+                            </label>
+                            <textarea
+                                value={form.description} rows={3}
+                                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                className="input-base resize-none"
+                                style={{ minHeight: '80px' }}
+                                placeholder="Short description of the item"
+                            />
+                        </div>
+
+                        {/* Price row */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                    Price (Rs) <span style={{ color: 'var(--danger)' }}>*</span>
+                                </label>
+                                <input
+                                    type="number" value={form.price} min="0" step="0.01" required
+                                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                                    className="input-base" placeholder="0.00"
                                 />
                             </div>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="form-group">
-                            <label className="label-base">Sort Order</label>
-                            <input
-                                type="number" value={form.sortOrder} min="0"
-                                onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
-                                className="input-base"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label className="label-base">Visibility</label>
-                            <div className="flex items-center h-[44px]">
-                                <Toggle
-                                    id="item-active"
-                                    checked={form.isActive}
-                                    onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                                    label="Active"
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                    Original Price (Rs)
+                                </label>
+                                <input
+                                    type="number" value={form.originalPrice} min="0" step="0.01"
+                                    onChange={(e) => setForm({ ...form, originalPrice: e.target.value })}
+                                    className="input-base" placeholder="For discounts"
                                 />
                             </div>
                         </div>
+
+                        {/* Image URL */}
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                Image URL
+                            </label>
+                            <input
+                                type="url"
+                                value={form.image}
+                                onChange={handleImageChange}
+                                className="input-base"
+                                placeholder="https://example.com/image.jpg"
+                                spellCheck={false}
+                            />
+                            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                                Paste a <strong style={{ color: 'var(--text-secondary)' }}>direct image link</strong> (ends in .jpg / .png / .webp).
+                                In Google Images: click the image → right-click → <em>Copy image address</em>.
+                            </p>
+
+                            {/* Live preview panel */}
+                            {imageUrl && (
+                                <div
+                                    className="rounded-xl overflow-hidden"
+                                    style={{ border: '1px solid var(--border)' }}
+                                >
+                                    {imgPreviewError ? (
+                                        <div
+                                            className="flex items-start gap-3 p-3.5"
+                                            style={{ backgroundColor: 'rgba(220,38,38,0.06)' }}
+                                        >
+                                            <div
+                                                className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                                style={{ backgroundColor: 'rgba(220,38,38,0.12)' }}
+                                            >
+                                                <HiOutlineX className="w-3.5 h-3.5" style={{ color: 'var(--danger)' }} />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-semibold" style={{ color: 'var(--danger)' }}>
+                                                    Image failed to load
+                                                </p>
+                                                <p className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                                                    This URL doesn't point to a direct image file.
+                                                    Try right-clicking the image and choosing
+                                                    <strong style={{ color: 'var(--text-secondary)' }}> "Copy image address"</strong>.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="relative" style={{ backgroundColor: 'var(--bg-surface-3)' }}>
+                                            <img
+                                                key={imageUrl}
+                                                src={imageUrl}
+                                                alt="Preview"
+                                                className="w-full h-40 object-cover block"
+                                                onError={() => setImgPreviewError(true)}
+                                            />
+                                            <span
+                                                className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-xs font-medium"
+                                                style={{ backgroundColor: 'rgba(0,0,0,0.55)', color: '#fff' }}
+                                            >
+                                                Preview
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Sort Order + Visibility */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                    Sort Order
+                                </label>
+                                <input
+                                    type="number" value={form.sortOrder} min="0"
+                                    onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
+                                    className="input-base"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                    Visibility
+                                </label>
+                                <div className="flex items-center" style={{ height: '44px' }}>
+                                    <Toggle
+                                        id="item-active"
+                                        checked={form.isActive}
+                                        onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                                        label="Active"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
-                        <button type="button" onClick={onClose} className="btn-md btn-outline">Cancel</button>
-                        <button type="submit" disabled={saving} className="btn-md btn-primary-solid">
-                            {saving ? 'Saving…' : 'Save Item'}
+                    {/* ── Sticky footer ── */}
+                    <div
+                        className="flex items-center justify-end gap-2.5 px-5 py-4 flex-shrink-0"
+                        style={{ borderTop: '1px solid var(--border)', backgroundColor: 'var(--bg-surface)' }}
+                    >
+                        <button
+                            type="button" onClick={onClose}
+                            style={{
+                                backgroundColor: 'var(--bg-surface-3)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '0.5rem',
+                                padding: '0 1rem',
+                                minHeight: '40px',
+                                fontWeight: 500,
+                                fontSize: '0.875rem',
+                                cursor: 'pointer',
+                                transition: 'background-color 150ms ease',
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-surface-3)'}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit" disabled={saving}
+                            className="btn-md btn-primary-solid"
+                            style={{ minWidth: '100px' }}
+                        >
+                            {saving ? 'Saving…' : initial ? 'Save Item' : 'Add Item'}
                         </button>
                     </div>
                 </form>
@@ -400,8 +636,8 @@ function ManageMenuPage() {
             ]);
             setGrouped(groupedRes.data || []);
             setCategories(catsRes.data || []);
-        } catch (err) {
-            console.error('Failed to load menu data:', err);
+        } catch {
+            // silently fail — user sees stale data
         } finally {
             setIsLoading(false);
         }
@@ -689,82 +925,14 @@ function ManageMenuPage() {
                             </div>
                         ) : (
                             /* Item cards grid */
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
                                 {displayedItems.map((item) => (
-                                    <div
+                                    <MenuItemCard
                                         key={item._id}
-                                        className={`rounded-xl border flex flex-col transition-shadow hover:shadow-md ${!item.isActive ? 'opacity-60' : ''}`}
-                                        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}
-                                    >
-                                        {/* Image */}
-                                        <div
-                                            className="aspect-[4/3] relative overflow-hidden rounded-t-xl flex-shrink-0"
-                                            style={{ backgroundColor: 'var(--bg-surface-3)' }}
-                                        >
-                                            {item.image ? (
-                                                <img
-                                                    src={item.image} alt={item.name}
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>
-                                                    <HiOutlineCollection className="w-10 h-10" />
-                                                </div>
-                                            )}
-                                            <div className="absolute top-2 left-2">
-                                                <StatusBadge active={item.isActive} />
-                                            </div>
-                                        </div>
-
-                                        {/* Card body */}
-                                        <div className="p-3 flex flex-col gap-1 flex-1">
-                                            <p className="text-xs font-medium" style={{ color: 'var(--primary)' }}>
-                                                {item.category?.name}
-                                            </p>
-                                            <h3 className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>
-                                                {item.name}
-                                            </h3>
-                                            {item.description && (
-                                                <p className="text-xs line-clamp-1" style={{ color: 'var(--text-muted)' }}>
-                                                    {item.description}
-                                                </p>
-                                            )}
-
-                                            {/* Price + actions */}
-                                            <div
-                                                className="flex items-center justify-between mt-auto pt-2.5"
-                                                style={{ borderTop: '1px solid var(--border)' }}
-                                            >
-                                                <div className="leading-tight">
-                                                    {item.originalPrice && (
-                                                        <p className="text-xs line-through" style={{ color: 'var(--text-muted)' }}>
-                                                            Rs {item.originalPrice}
-                                                        </p>
-                                                    )}
-                                                    <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-                                                        Rs {item.price}
-                                                    </p>
-                                                </div>
-                                                <div className="flex gap-0.5 flex-shrink-0">
-                                                    <IconBtn
-                                                        onClick={() => { setEditingItem(item); setShowItemModal(true); }}
-                                                        title="Edit item"
-                                                        hoverColor="blue"
-                                                    >
-                                                        <HiOutlinePencil className="w-4 h-4" />
-                                                    </IconBtn>
-                                                    <IconBtn
-                                                        onClick={() => handleDeleteItem(item)}
-                                                        title="Delete item"
-                                                        hoverColor="red"
-                                                    >
-                                                        <HiOutlineTrash className="w-4 h-4" />
-                                                    </IconBtn>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                        item={item}
+                                        onEdit={() => { setEditingItem(item); setShowItemModal(true); }}
+                                        onDelete={() => handleDeleteItem(item)}
+                                    />
                                 ))}
                             </div>
                         )}

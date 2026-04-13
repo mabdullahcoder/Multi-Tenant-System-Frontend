@@ -5,20 +5,23 @@ function NotFoundPage() {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+        <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: 'var(--bg-base)' }}>
             <div className="text-center">
-                <h1 className="text-9xl font-bold text-blue-600 mb-4">
+                <h1
+                    className="text-8xl sm:text-9xl font-bold mb-4 leading-none"
+                    style={{ color: 'var(--primary)' }}
+                >
                     404
                 </h1>
-                <p className="text-3xl font-semibold text-gray-900 mb-2">
+                <p className="text-2xl sm:text-3xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
                     Page Not Found
                 </p>
-                <p className="text-gray-600 mb-8">
+                <p className="text-sm sm:text-base mb-8 max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
                     Sorry, the page you're looking for doesn't exist.
                 </p>
                 <button
                     onClick={() => navigate(-1)}
-                    className="btn-primary"
+                    className="btn-md btn-primary-solid px-8"
                 >
                     Go Back
                 </button>

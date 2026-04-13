@@ -63,7 +63,7 @@ const OrderSummary = ({
             {cartItems.map((item) => (
               <li
                 key={item.id}
-                className="flex flex-col gap-1.5 rounded-lg px-3 py-2.5 transition-all"
+                className="flex items-center gap-2 rounded-lg px-3 py-2.5 transition-all"
                 style={{
                   backgroundColor: 'var(--bg-surface-2)',
                   border: '1px solid var(--border)',
@@ -71,75 +71,72 @@ const OrderSummary = ({
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-surface-2)'}
               >
-                {/* Item name — full row so it never truncates */}
+                {/* Name — grows, truncates on overflow */}
                 <span
-                  className="text-xs font-semibold leading-snug"
+                  className="flex-1 min-w-0 text-xs font-semibold leading-snug truncate"
                   style={{ color: 'var(--text-primary)' }}
                   title={item.name}
                 >
                   {item.name}
                 </span>
 
-                {/* Controls row: stepper + price + remove */}
-                <div className="flex items-center gap-2">
-                  {/* Quantity stepper */}
-                  <div
-                    className="flex items-center rounded overflow-hidden flex-shrink-0"
-                    style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-surface)' }}
-                    role="group"
-                    aria-label={`Quantity for ${item.name}`}
-                  >
-                    <button
-                      onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                      className="w-6 h-6 flex items-center justify-center transition-colors"
-                      style={{ color: 'var(--text-muted)', borderRight: '1px solid var(--border)' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.08)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
-                      aria-label={`Decrease quantity of ${item.name}`}
-                    >
-                      <HiOutlineMinus className="w-2.5 h-2.5" />
-                    </button>
-                    <span
-                      className="w-6 text-center text-xs font-bold tabular-nums leading-none"
-                      style={{ color: 'var(--text-primary)' }}
-                      aria-live="polite"
-                      aria-label={`${item.quantity} of ${item.name}`}
-                    >
-                      {item.quantity}
-                    </span>
-                    <button
-                      onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                      className="w-6 h-6 flex items-center justify-center transition-colors"
-                      style={{ color: 'var(--text-muted)', borderLeft: '1px solid var(--border)' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--success)'; e.currentTarget.style.backgroundColor = 'rgba(16,185,129,0.08)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
-                      aria-label={`Increase quantity of ${item.name}`}
-                    >
-                      <HiOutlinePlus className="w-2.5 h-2.5" />
-                    </button>
-                  </div>
+                {/* Price — fixed width, right-aligned */}
+                <span
+                  className="text-xs font-bold tabular-nums flex-shrink-0"
+                  style={{ color: 'var(--primary)' }}
+                >
+                  ₨{(item.price * (item.quantity || 1)).toLocaleString()}
+                </span>
 
-                  {/* Price */}
-                  <span
-                    className="flex-1 text-xs font-bold tabular-nums"
-                    style={{ color: 'var(--primary)' }}
-                  >
-                    ₨{(item.price * (item.quantity || 1)).toLocaleString()}
-                  </span>
-
-                  {/* Remove */}
+                {/* Quantity stepper */}
+                <div
+                  className="flex items-center rounded overflow-hidden flex-shrink-0"
+                  style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-surface)' }}
+                  role="group"
+                  aria-label={`Quantity for ${item.name}`}
+                >
                   <button
-                    onClick={() => handleRemoveItem(item.id)}
-                    className="p-1.5 rounded transition-colors flex-shrink-0 flex items-center justify-center"
-                    style={{ color: 'var(--text-muted)' }}
+                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                    className="w-6 h-6 flex items-center justify-center transition-colors"
+                    style={{ color: 'var(--text-muted)', borderRight: '1px solid var(--border)' }}
                     onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.08)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
-                    aria-label={`Remove ${item.name} from order`}
-                    title={`Remove ${item.name}`}
+                    aria-label={`Decrease quantity of ${item.name}`}
                   >
-                    <HiOutlineTrash className="w-3.5 h-3.5" />
+                    <HiOutlineMinus className="w-2.5 h-2.5" />
+                  </button>
+                  <span
+                    className="w-6 text-center text-xs font-bold tabular-nums leading-none"
+                    style={{ color: 'var(--text-primary)' }}
+                    aria-live="polite"
+                    aria-label={`${item.quantity} of ${item.name}`}
+                  >
+                    {item.quantity}
+                  </span>
+                  <button
+                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                    className="w-6 h-6 flex items-center justify-center transition-colors"
+                    style={{ color: 'var(--text-muted)', borderLeft: '1px solid var(--border)' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--success)'; e.currentTarget.style.backgroundColor = 'rgba(16,185,129,0.08)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+                    aria-label={`Increase quantity of ${item.name}`}
+                  >
+                    <HiOutlinePlus className="w-2.5 h-2.5" />
                   </button>
                 </div>
+
+                {/* Delete */}
+                <button
+                  onClick={() => handleRemoveItem(item.id)}
+                  className="w-6 h-6 flex items-center justify-center rounded transition-colors flex-shrink-0"
+                  style={{ color: 'var(--text-muted)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.08)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+                  aria-label={`Remove ${item.name} from order`}
+                  title={`Remove ${item.name}`}
+                >
+                  <HiOutlineTrash className="w-3.5 h-3.5" />
+                </button>
               </li>
             ))}
           </ul>
@@ -158,7 +155,7 @@ const OrderSummary = ({
               <span style={{ color: 'var(--text-muted)' }}>Subtotal</span>
               <span className="font-semibold tabular-nums" style={{ color: 'var(--text-secondary)' }}>₨{cartTotal.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between items-center text-xs">
+            <div className="flex justify-between items-center text-xs pt-3 pb-2">
               <span style={{ color: 'var(--text-muted)' }}>Delivery</span>
               <span className="font-semibold" style={{ color: 'var(--success)' }}>Free</span>
             </div>

@@ -80,11 +80,6 @@ apiClient.interceptors.response.use(
             };
         }
 
-        // Handle validation errors
-        if (error.response?.status === 400) {
-            console.warn('Validation error:', error.response?.data);
-        }
-
         return Promise.reject(error);
     }
 );

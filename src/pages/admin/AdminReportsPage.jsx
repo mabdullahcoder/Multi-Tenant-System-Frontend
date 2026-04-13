@@ -104,7 +104,7 @@ function ChartCard({ title, children, className = '' }) {
 function Spinner() {
     return (
         <div className="flex items-center justify-center py-16">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--primary)' }} />
         </div>
     );
 }
@@ -475,7 +475,10 @@ function MenuTab() {
                                 {data.leastItems.map((item, i) => (
                                     <div key={item._id} className="flex items-center justify-between py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                                         <div className="flex items-center gap-3">
-                                            <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-red-500/10 text-red-500">{i + 1}</span>
+                                            <span
+                                                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                                                style={{ backgroundColor: 'rgba(220,38,38,0.1)', color: 'var(--danger)' }}
+                                            >{i + 1}</span>
                                             <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{item._id}</span>
                                         </div>
                                         <div className="text-right">

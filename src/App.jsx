@@ -22,6 +22,7 @@ import AdminReportsPage from './pages/admin/AdminReportsPage';
 import ActivityLogsPage from './pages/admin/ActivityLogsPage';
 import ManageMenuPage from './pages/admin/ManageMenuPage';
 import KitchenDisplaySystem from './pages/admin/KitchenDisplaySystem';
+import AdminProfilePage from './pages/admin/AdminProfilePage';
 
 // Components
 import ProtectedRoute from './components/routes/ProtectedRoute';
@@ -57,6 +58,7 @@ function AppRoutes() {
                 <Route path="/admin/reports" element={<ProtectedRoute role={['admin', 'super-admin']}><AdminReportsPage /></ProtectedRoute>} />
                 <Route path="/admin/activity-logs" element={<ProtectedRoute role={['admin', 'super-admin']}><ActivityLogsPage /></ProtectedRoute>} />
                 <Route path="/admin/menu" element={<ProtectedRoute role={['admin', 'super-admin']}><ManageMenuPage /></ProtectedRoute>} />
+                <Route path="/admin/profile" element={<ProtectedRoute role={['admin', 'super-admin']}><AdminProfilePage /></ProtectedRoute>} />
 
                 <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
                 <Route path="*" element={<NotFoundPage />} />

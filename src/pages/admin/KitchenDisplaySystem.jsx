@@ -130,7 +130,6 @@ function KitchenDisplaySystem() {
             const pendingRes = await orderAPI.getAllOrders(1, 100, { status: 'pending' });
             const confirmedRes = await orderAPI.getAllOrders(1, 100, { status: 'confirmed' });
             const deliveredRes = await orderAPI.getAllOrders(1, 100, { status: 'delivered' });
-
             const allOrders = [
                 ...(pendingRes.data || []),
                 ...(confirmedRes.data || []),
@@ -187,7 +186,6 @@ function KitchenDisplaySystem() {
             );
 
             setOrders(groupedOrdersArray);
-            console.log('✓ KDS: Grouped orders fetched:', groupedOrdersArray.length);
         } catch (err) {
             console.error('KDS: Failed to fetch orders:', err);
             if (err.response?.status !== 404) {
@@ -204,8 +202,6 @@ function KitchenDisplaySystem() {
         if (!socket) return;
 
         const handleNewOrder = (data) => {
-            console.log('KDS: New order received via socket:', data.orderId);
-
             setOrders((prevOrders) => {
                 const key = getOrderKey(data);
                 const existingIndex = prevOrders.findIndex((order) => getOrderKey(order) === key);
@@ -242,11 +238,6 @@ function KitchenDisplaySystem() {
         };
 
         const handleOrderStatusUpdate = (data) => {
-            console.log('\nKDS: SOCKET EVENT - Order status updated');
-            console.log(`Order ID: ${data.orderId}`);
-            console.log(`New Status: ${data.status}`);
-            console.log(`Updated At: ${data.updatedAt}`);
-
             // Sync the cooking start time from the authoritative DB timestamp so all
             // clients (including those that just refreshed) share the same timer origin
             if (data.status === 'confirmed' && data.confirmedAt) {
@@ -260,9 +251,6 @@ function KitchenDisplaySystem() {
                         const items = Array.isArray(groupedOrder.items) ? groupedOrder.items : [];
                         const itemIndex = items.findIndex(item => item._id === data._id);
                         if (itemIndex !== -1) {
-                            console.log(`Found order in grouped order: ${groupedOrder.orderId}`);
-                            console.log(`Old Status: ${groupedOrder.status} → New Status: ${data.status}`);
-
                             const updatedOrder = {
                                 ...groupedOrder,
                                 status: data.status,
@@ -273,24 +261,18 @@ function KitchenDisplaySystem() {
                                         : item
                                 ),
                             };
-
                             return updatedOrder;
                         }
                         return groupedOrder;
                     })
                     .filter((groupedOrder) => {
                         const items = Array.isArray(groupedOrder.items) ? groupedOrder.items : [];
-                        const hasValidItems = items.some(item =>
+                        return items.some(item =>
                             ['pending', 'confirmed', 'delivered'].includes(item.status || groupedOrder.status)
                         );
-                        if (!hasValidItems) {
-                            console.log(`Filtered out grouped order ${groupedOrder.orderId} - no valid items`);
-                        }
-                        return hasValidItems;
                     })
                     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-                console.log(`Total grouped orders after update: ${updated.length}`);
                 return updated;
             });
 
@@ -301,8 +283,6 @@ function KitchenDisplaySystem() {
         };
 
         const handleOrderCancelled = (data) => {
-            console.log('✓ KDS: Order cancelled:', data.orderId);
-
             setOrders((prevOrders) =>
                 prevOrders.filter((order) => order.orderId !== data.orderId && order._id !== data._id)
             );
@@ -314,7 +294,6 @@ function KitchenDisplaySystem() {
         };
 
         const handleOrderItemsAppended = (data) => {
-            console.log('KDS: Items appended to order:', data.orderId);
             setOrders((prevOrders) =>
                 prevOrders.map((order) => {
                     if (order._id === data._id || order.orderId === data.orderId) {
@@ -335,7 +314,6 @@ function KitchenDisplaySystem() {
         };
 
         const handleOrderItemsUpdated = (data) => {
-            console.log('KDS: Items updated on order:', data.orderId);
             setOrders((prevOrders) =>
                 prevOrders.map((order) => {
                     if (order._id === data._id || order.orderId === data.orderId) {
@@ -370,15 +348,12 @@ function KitchenDisplaySystem() {
             handleOrderItemsUpdated,
         };
 
-        console.log('✓ KDS: Socket listeners registered');
-
         return () => {
             socket.off('orderCreated', handleNewOrder);
             socket.off('orderStatusUpdated', handleOrderStatusUpdate);
             socket.off('orderCancelled', handleOrderCancelled);
             socket.off('orderItemsAppended', handleOrderItemsAppended);
             socket.off('orderItemsUpdated', handleOrderItemsUpdated);
-            console.log('KDS: Socket listeners removed');
         };
     }, [socket, addNotification]);
 
@@ -422,14 +397,10 @@ function KitchenDisplaySystem() {
         async (orderId, newStatus) => {
             setIsUpdating((prev) => ({ ...prev, [orderId]: true }));
 
-            // Record the exact click time when kitchen starts cooking
             if (newStatus === 'confirmed') {
                 cookingStartTimes.current[orderId] = Date.now();
             }
             try {
-                console.log(`\nKDS: ORDER STATUS UPDATE REQUEST`);
-                console.log(`Order _id: ${orderId}, New Status: ${newStatus}`);
-
                 const groupedOrder = orders.find(order => order._id === orderId);
                 if (!groupedOrder) {
                     throw new Error('Order not found in local state');
@@ -448,15 +419,8 @@ function KitchenDisplaySystem() {
                     )
                 );
 
-                // The grouped order's _id IS the parent Order document's MongoDB _id.
-                // Always update the parent document once — never iterate over embedded item _ids,
-                // those are subdocument ids and don't exist as top-level Order documents.
                 await orderAPI.updateOrderStatus(groupedOrder._id, newStatus);
-
-                console.log(`✓ KDS: Order ${groupedOrder.orderId} → ${newStatus}`);
-
             } catch (err) {
-                console.error('KDS: Failed to update order status:', err);
                 // Roll back optimistic update
                 fetchKDSOrders();
                 addNotification({
@@ -602,8 +566,8 @@ function KitchenDisplaySystem() {
                 {/* {orders.length === 0 && !isLoading && (
                     <div className="mt-12 text-center">
                         <div className="text-6xl mb-4">🎉</div>
-                        <h2 className="text-2xl font-bold text-gray-700 mb-2">No Active Orders</h2>
-                        <p className="text-gray-500">
+                        <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>No Active Orders</h2>
+                        <p style={{ color: 'var(--text-secondary)' }}>
                             All orders have been completed or cancelled. Waiting for new orders...
                         </p>
                     </div>
@@ -656,9 +620,15 @@ function OrderTicket({ order, onStatusUpdate, onAddItems, isUpdating, cookingSta
     const items = Array.isArray(order.items) ? order.items : [];
 
     const getTimerColor = () => {
-        if (remainingSeconds <= 60) return 'text-red-600 font-bold animate-pulse';
-        if (remainingSeconds <= 180) return 'text-amber-600 font-semibold';
-        return 'text-slate-700';
+        if (remainingSeconds <= 60) return 'font-bold animate-pulse';
+        if (remainingSeconds <= 180) return 'font-semibold';
+        return '';
+    };
+
+    const getTimerStyle = () => {
+        if (remainingSeconds <= 60) return { color: 'var(--danger)' };
+        if (remainingSeconds <= 180) return { color: 'var(--warning)' };
+        return { color: 'var(--text-secondary)' };
     };
 
     const formatOrderTime = (timestamp) => {
@@ -691,7 +661,7 @@ function OrderTicket({ order, onStatusUpdate, onAddItems, isUpdating, cookingSta
                 <div className="mt-3 flex items-center justify-between gap-3 text-sm" style={{ color: 'var(--text-muted)' }}>
                     <span>{formatOrderTime(order.createdAt)}</span>
                     {order.status === 'confirmed' ? (
-                        <span className={`font-semibold ${getTimerColor()}`}>{formatCountdown(remainingSeconds)}</span>
+                        <span className={`font-semibold ${getTimerColor()}`} style={getTimerStyle()}>{formatCountdown(remainingSeconds)}</span>
                     ) : (
                         <span>{order.status === 'pending' ? 'Pending' : 'Ready'}</span>
                     )}

@@ -37,8 +37,10 @@ function Navbar() {
                     <button
                         onClick={toggleSidebar}
                         aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
-                        className="lg:hidden p-2 md:p-2.5 rounded-lg transition-colors active:bg-gray-200 md:hover:bg-gray-100"
-                        style={{ color: 'var(--text-secondary)', minHeight: '44px', minWidth: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        className="lg:hidden p-2 md:p-2.5 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        style={{ color: 'var(--text-secondary)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
                     >
                         {isMobileOpen
                             ? <HiOutlineX className="w-5 h-5 md:w-6 md:h-6" />
@@ -67,8 +69,10 @@ function Navbar() {
                     <div className="relative">
                         <button
                             onClick={() => setIsProfileOpen((p) => !p)}
-                            className="flex items-center gap-2 md:gap-2.5 px-2 md:px-3 py-1.5 md:py-2 rounded-lg transition-colors active:bg-gray-200 md:hover:bg-gray-100 min-h-[44px]"
+                            className="flex items-center gap-2 md:gap-2.5 px-2 md:px-3 py-1.5 md:py-2 rounded-lg transition-colors min-h-[44px]"
                             style={{ color: 'var(--text-secondary)' }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
                         >
                             {/* Avatar */}
                             <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0 shadow-sm">
@@ -88,32 +92,48 @@ function Navbar() {
                         {/* Profile Dropdown */}
                         {isProfileOpen && (
                             <div
-                                className="absolute right-0 mt-2 w-56 sm:w-60 rounded-xl py-2 z-50 animate-fade-in max-h-[90vh] overflow-y-auto"
+                                className="absolute right-0 mt-2 w-56 sm:w-60 rounded-xl py-1.5 z-50 animate-fade-in"
                                 style={{
                                     backgroundColor: 'var(--bg-surface)',
                                     border: '1px solid var(--border)',
                                     boxShadow: 'var(--shadow-xl)',
                                 }}
                             >
-                                <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-                                    <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                                <div className="px-4 py-3 mb-0.5" style={{ borderBottom: '1px solid var(--border)' }}>
+                                    <p className="text-sm font-semibold truncate leading-snug" style={{ color: 'var(--text-primary)' }}>
                                         {user?.firstName} {user?.lastName}
                                     </p>
-                                    <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
+                                    <p className="text-xs mt-0.5 truncate leading-snug" style={{ color: 'var(--text-secondary)' }}>
                                         {user?.email}
                                     </p>
-                                    <span className="inline-block mt-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-600 capitalize">
+                                    <span
+                                        className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-semibold capitalize"
+                                        style={{
+                                            backgroundColor: 'rgba(59,130,246,0.1)',
+                                            color: 'var(--primary)',
+                                            border: '1px solid rgba(59,130,246,0.2)',
+                                        }}
+                                    >
                                         {roleLabel}
                                     </span>
                                 </div>
-                                <div className="py-1">
+                                <div className="py-0.5">
                                     <button
-                                        onClick={() => { navigate('/user/profile'); setIsProfileOpen(false); }}
-                                        className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-colors active:bg-gray-100 md:hover:bg-gray-50 min-h-[44px]"
-                                        style={{ color: 'var(--text-secondary)' }}
+                                        onClick={() => {
+                                            const profilePath =
+                                                user?.role === 'admin' || user?.role === 'super-admin'
+                                                    ? '/admin/profile'
+                                                    : '/user/profile';
+                                            navigate(profilePath);
+                                            setIsProfileOpen(false);
+                                        }}
+                                        className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-colors min-h-[44px]"
+                                        style={{ color: 'var(--text-primary)' }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
                                     >
                                         <HiOutlineUser className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-                                        <span>Profile Settings</span>
+                                        <span className="font-medium">Profile Settings</span>
                                     </button>
                                 </div>
                             </div>

@@ -290,14 +290,10 @@ function ManageOrdersPage() {
         if (!socket) return;
 
         const handleOrderStatusUpdate = (data) => {
-            console.log('✓ Admin: Real-time order status update:', data);
-
             setOrders((prevOrders) =>
                 prevOrders.map((order) => {
                     if (order.orderId === data.orderId || order._id === data._id) {
-                        const updatedOrder = { ...order, status: data.status, updatedAt: data.updatedAt };
-                        console.log('✓ Admin: Order updated:', updatedOrder);
-                        return updatedOrder;
+                        return { ...order, status: data.status, updatedAt: data.updatedAt };
                     }
                     return order;
                 })
@@ -310,14 +306,10 @@ function ManageOrdersPage() {
         };
 
         const handleOrderCancelled = (data) => {
-            console.log('✓ Admin: Order cancellation update:', data);
-
             setOrders((prevOrders) =>
                 prevOrders.map((order) => {
                     if (order.orderId === data.orderId || order._id === data._id) {
-                        const updatedOrder = { ...order, status: 'cancelled', updatedAt: data.updatedAt };
-                        console.log('Admin: Order cancelled:', updatedOrder);
-                        return updatedOrder;
+                        return { ...order, status: 'cancelled', updatedAt: data.updatedAt };
                     }
                     return order;
                 })
@@ -329,10 +321,7 @@ function ManageOrdersPage() {
             });
         };
 
-        /** SENIOR FIX: Real-time order deletion handler */
         const handleOrderDeleted = (data) => {
-            console.log('✓ Admin: Real-time order deletion:', data);
-
             setOrders((prevOrders) =>
                 prevOrders.filter((order) => order.orderId !== data.orderId && order._id !== data._id)
             );
@@ -343,12 +332,8 @@ function ManageOrdersPage() {
             });
         };
 
-        /** SENIOR FIX: Handle individual order updates for bulk operations instead of refetching entire list */
         const handleBulkOrderStatusUpdated = (data) => {
-            console.log('✓ Admin: Bulk order status update received:', data);
             // Bulk updates are handled as individual orderStatusUpdated events from server
-            // No need to refetch - socket listeners above handle each order update
-
             addNotification({
                 type: 'info',
                 message: `${data.updated} order(s) status updated to ${data.status}`,
@@ -482,7 +467,7 @@ function ManageOrdersPage() {
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-20 gap-3">
                         <div className="spinner" />
-                        <p className="text-sm text-gray-500">Loading orders…</p>
+                        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading orders…</p>
                     </div>
                 ) : filteredOrders.length > 0 ? (
                     <ResponsiveOrderTable
@@ -529,12 +514,15 @@ function ManageOrdersPage() {
                     title="Confirm Permanent Deletion"
                 >
                     <div className="space-y-4">
-                        <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3">
-                            <HiOutlineXCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                        <div
+                            className="p-4 rounded-xl flex items-start gap-3"
+                            style={{ backgroundColor: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.2)' }}
+                        >
+                            <HiOutlineXCircle className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: 'var(--danger)' }} />
                             <div>
-                                <p className="text-sm font-bold text-red-900">This action cannot be undone</p>
-                                <p className="text-xs text-red-700 mt-0.5">
-                                    You are about to permanently delete order <span className="font-bold">#{orderToDelete?.number}</span>.
+                                <p className="text-sm font-bold" style={{ color: 'var(--danger)' }}>This action cannot be undone</p>
+                                <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    You are about to permanently delete order <span className="font-bold" style={{ color: 'var(--text-primary)' }}>#{orderToDelete?.number}</span>.
                                     All associated records will be removed from the system.
                                 </p>
                             </div>

@@ -80,8 +80,6 @@ function MyOrdersPage() {
         if (!socket) return;
 
         const handleStatusUpdate = (data) => {
-            console.log('✓ Real-time status update received:', data);
-
             setOrders((prevOrders) =>
                 prevOrders.map((order) => {
                     if (order.orderId === data.orderId || order._id === data._id) {
@@ -98,8 +96,6 @@ function MyOrdersPage() {
         };
 
         const handleOrderCancelled = (data) => {
-            console.log('✓ Order cancellation received:', data);
-
             setOrders((prevOrders) =>
                 prevOrders.map((order) => {
                     if (order.orderId === data.orderId || order._id === data._id) {
