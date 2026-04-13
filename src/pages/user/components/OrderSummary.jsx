@@ -59,11 +59,11 @@ const OrderSummary = ({
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Tap any item on the menu to add it here</p>
           </div>
         ) : (
-          <ul className="space-y-1 px-2.5 py-2.5" aria-label="Cart items">
+          <ul className="space-y-1.5 px-3 py-3" aria-label="Cart items">
             {cartItems.map((item) => (
               <li
                 key={item.id}
-                className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 transition-all"
+                className="flex flex-col gap-1.5 rounded-lg px-3 py-2.5 transition-all"
                 style={{
                   backgroundColor: 'var(--bg-surface-2)',
                   border: '1px solid var(--border)',
@@ -71,72 +71,75 @@ const OrderSummary = ({
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-surface-2)'}
               >
-                {/* Item name */}
+                {/* Item name — full row so it never truncates */}
                 <span
-                  className="flex-1 text-xs font-medium truncate"
+                  className="text-xs font-semibold leading-snug"
                   style={{ color: 'var(--text-primary)' }}
                   title={item.name}
                 >
                   {item.name}
                 </span>
 
-                {/* Price */}
-                <span
-                  className="text-xs font-bold tabular-nums whitespace-nowrap flex-shrink-0"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  ₨{(item.price * (item.quantity || 1)).toLocaleString()}
-                </span>
+                {/* Controls row: stepper + price + remove */}
+                <div className="flex items-center gap-2">
+                  {/* Quantity stepper */}
+                  <div
+                    className="flex items-center rounded overflow-hidden flex-shrink-0"
+                    style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-surface)' }}
+                    role="group"
+                    aria-label={`Quantity for ${item.name}`}
+                  >
+                    <button
+                      onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                      className="w-6 h-6 flex items-center justify-center transition-colors"
+                      style={{ color: 'var(--text-muted)', borderRight: '1px solid var(--border)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.08)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+                      aria-label={`Decrease quantity of ${item.name}`}
+                    >
+                      <HiOutlineMinus className="w-2.5 h-2.5" />
+                    </button>
+                    <span
+                      className="w-6 text-center text-xs font-bold tabular-nums leading-none"
+                      style={{ color: 'var(--text-primary)' }}
+                      aria-live="polite"
+                      aria-label={`${item.quantity} of ${item.name}`}
+                    >
+                      {item.quantity}
+                    </span>
+                    <button
+                      onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                      className="w-6 h-6 flex items-center justify-center transition-colors"
+                      style={{ color: 'var(--text-muted)', borderLeft: '1px solid var(--border)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--success)'; e.currentTarget.style.backgroundColor = 'rgba(16,185,129,0.08)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+                      aria-label={`Increase quantity of ${item.name}`}
+                    >
+                      <HiOutlinePlus className="w-2.5 h-2.5" />
+                    </button>
+                  </div>
 
-                {/* Quantity stepper */}
-                <div
-                  className="flex items-center rounded overflow-hidden flex-shrink-0"
-                  style={{ border: '1px solid var(--border)', backgroundColor: 'var(--bg-surface)' }}
-                  role="group"
-                  aria-label={`Quantity for ${item.name}`}
-                >
+                  {/* Price */}
+                  <span
+                    className="flex-1 text-xs font-bold tabular-nums"
+                    style={{ color: 'var(--primary)' }}
+                  >
+                    ₨{(item.price * (item.quantity || 1)).toLocaleString()}
+                  </span>
+
+                  {/* Remove */}
                   <button
-                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                    className="w-5 h-5 flex items-center justify-center transition-colors"
-                    style={{ color: 'var(--text-muted)', borderRight: '1px solid var(--border)' }}
+                    onClick={() => handleRemoveItem(item.id)}
+                    className="p-1.5 rounded transition-colors flex-shrink-0 flex items-center justify-center"
+                    style={{ color: 'var(--text-muted)' }}
                     onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.08)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
-                    aria-label={`Decrease quantity of ${item.name}`}
+                    aria-label={`Remove ${item.name} from order`}
+                    title={`Remove ${item.name}`}
                   >
-                    <HiOutlineMinus className="w-2 h-2" />
-                  </button>
-                  <span
-                    className="w-5 text-center text-[10px] font-bold tabular-nums leading-none"
-                    style={{ color: 'var(--text-primary)' }}
-                    aria-live="polite"
-                    aria-label={`${item.quantity} of ${item.name}`}
-                  >
-                    {item.quantity}
-                  </span>
-                  <button
-                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                    className="w-5 h-5 flex items-center justify-center transition-colors"
-                    style={{ color: 'var(--text-muted)', borderLeft: '1px solid var(--border)' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--success)'; e.currentTarget.style.backgroundColor = 'rgba(16,185,129,0.08)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
-                    aria-label={`Increase quantity of ${item.name}`}
-                  >
-                    <HiOutlinePlus className="w-2 h-2" />
+                    <HiOutlineTrash className="w-3.5 h-3.5" />
                   </button>
                 </div>
-
-                {/* Remove */}
-                <button
-                  onClick={() => handleRemoveItem(item.id)}
-                  className="p-1 rounded transition-colors flex-shrink-0 flex items-center justify-center"
-                  style={{ color: 'var(--text-muted)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.08)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
-                  aria-label={`Remove ${item.name} from order`}
-                  title={`Remove ${item.name}`}
-                >
-                  <HiOutlineTrash className="w-3 h-3" />
-                </button>
               </li>
             ))}
           </ul>

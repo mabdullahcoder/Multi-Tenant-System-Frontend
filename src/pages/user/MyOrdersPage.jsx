@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MainLayout from '../../components/layouts/MainLayout';
 import { orderAPI } from '../../services/orderAPI';
@@ -7,7 +7,7 @@ import {
     HiOutlineClock, HiOutlineCheckCircle,
     HiOutlineCheck, HiOutlineXCircle,
     HiOutlineShoppingBag, HiOutlinePlus,
-    HiRefresh,
+    HiRefresh, HiOutlineTruck,
 } from 'react-icons/hi';
 import { useSocket } from '../../context/SocketContext';
 import SearchInput from '../../components/ui/SearchInput';
@@ -17,6 +17,7 @@ import SearchInput from '../../components/ui/SearchInput';
 const STATUS_CONFIG = {
     pending: { label: 'Pending', icon: HiOutlineClock, bgColor: 'bg-amber-50', textColor: 'text-amber-700', borderColor: 'border-amber-200', dotColor: 'bg-amber-500' },
     confirmed: { label: 'Confirmed', icon: HiOutlineCheckCircle, bgColor: 'bg-blue-50', textColor: 'text-blue-700', borderColor: 'border-blue-200', dotColor: 'bg-blue-500' },
+    shipped: { label: 'Shipped', icon: HiOutlineTruck, bgColor: 'bg-purple-50', textColor: 'text-purple-700', borderColor: 'border-purple-200', dotColor: 'bg-purple-500' },
     delivered: { label: 'Delivered', icon: HiOutlineCheck, bgColor: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200', dotColor: 'bg-emerald-500' },
     cancelled: { label: 'Cancelled', icon: HiOutlineXCircle, bgColor: 'bg-red-50', textColor: 'text-red-700', borderColor: 'border-red-200', dotColor: 'bg-red-500' },
 };
@@ -25,6 +26,7 @@ const FILTERS = [
     { key: 'all', label: 'All' },
     { key: 'pending', label: 'Pending' },
     { key: 'confirmed', label: 'Confirmed' },
+    { key: 'shipped', label: 'Shipped' },
     { key: 'delivered', label: 'Delivered' },
     { key: 'cancelled', label: 'Cancelled' },
 ];
@@ -56,7 +58,22 @@ function MyOrdersPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => { fetchOrders(); }, []);
+    const fetchOrders = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const res = await orderAPI.getUserOrders(1, 100, {});
+            setOrders(res.data || []);
+        } catch (err) {
+            if (err.response?.status !== 404) {
+                addNotification({ type: 'error', message: err.response?.data?.message || 'Failed to fetch orders' });
+            }
+            setOrders([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [addNotification]);
+
+    useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
     /* Real-time socket updates */
     useEffect(() => {
@@ -115,27 +132,13 @@ function MyOrdersPage() {
             window.history.replaceState({}, document.title);
             return () => clearTimeout(t);
         }
-    }, [location.state]);
+    }, [location.state, fetchOrders]);
 
+    // Refetch when the tab regains focus — stable ref ensures no listener leak
     useEffect(() => {
         window.addEventListener('focus', fetchOrders);
         return () => window.removeEventListener('focus', fetchOrders);
-    }, []);
-
-    const fetchOrders = async () => {
-        setIsLoading(true);
-        try {
-            const res = await orderAPI.getUserOrders(1, 100, {});
-            setOrders(res.data || []);
-        } catch (err) {
-            if (err.response?.status !== 404) {
-                addNotification({ type: 'error', message: err.response?.data?.message || 'Failed to fetch orders' });
-            }
-            setOrders([]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    }, [fetchOrders]);
 
     const getStatusConfig = (s) => STATUS_CONFIG[s] || STATUS_CONFIG.pending;
 
@@ -154,6 +157,7 @@ function MyOrdersPage() {
             all: orders.length,
             pending: 0,
             confirmed: 0,
+            shipped: 0,
             delivered: 0,
             cancelled: 0,
         };
@@ -161,7 +165,7 @@ function MyOrdersPage() {
         // Count each status
         orders.forEach((order) => {
             const status = order.status || 'pending';
-            if (counts.hasOwnProperty(status)) {
+            if (Object.prototype.hasOwnProperty.call(counts, status)) {
                 counts[status]++;
             }
         });

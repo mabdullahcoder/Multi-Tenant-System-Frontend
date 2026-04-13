@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import MainLayout from '../../components/layouts/MainLayout';
 import { userAPI } from '../../services/userAPI';
 import { orderAPI } from '../../services/orderAPI';

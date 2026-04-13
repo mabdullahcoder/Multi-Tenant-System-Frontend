@@ -5,6 +5,7 @@ import { useUI } from '../../context/UIContext';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { orderAPI } from '../../services/orderAPI';
+import { menuAPI } from '../../services/menuAPI';
 import ReceiptModal from '../../components/ui/ReceiptModal';
 
 // Components
@@ -38,11 +39,36 @@ function PlaceOrderPage() {
         editContext?.deliveryAddress || { street: '', city: '', state: '', country: '', zipCode: '' }
     );
 
+    // ── Menu state fetched from API ──
+    // getMenuGrouped returns an array: [{ _id, name, slug, items: [...] }, ...]
+    const [menuGrouped, setMenuGrouped] = useState([]);
+    const [menuLoading, setMenuLoading] = useState(true);
+    const [menuError, setMenuError] = useState(null);
+
+    // Fetch live menu from the database on mount
+    useEffect(() => {
+        let cancelled = false;
+        const fetchMenu = async () => {
+            setMenuLoading(true);
+            setMenuError(null);
+            try {
+                const res = await menuAPI.getMenuGrouped();
+                if (!cancelled) setMenuGrouped(res.data || []);
+            } catch (err) {
+                if (!cancelled) setMenuError('Failed to load menu. Please refresh.');
+            } finally {
+                if (!cancelled) setMenuLoading(false);
+            }
+        };
+        fetchMenu();
+        return () => { cancelled = true; };
+    }, []);
+
     // Seed cart with existing order items when entering edit mode
     useEffect(() => {
         if (!editContext) return;
         const seeded = (editContext.existingItems || []).map((item) => ({
-            id: item.productName, // use productName as stable id for menu items
+            id: item.productName,
             name: item.productName,
             description: item.productDescription || '',
             price: item.price,
@@ -52,50 +78,32 @@ function PlaceOrderPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Sample menu data
-    const menuCategories = useMemo(() => [
-        { id: 'all', label: 'All' },
-        { id: 'deals', label: 'Deals' },
-        { id: 'pizzas', label: 'Pizzas' },
-        { id: 'chicken', label: 'Chicken' },
-        { id: 'sides', label: 'Sides' },
-        { id: 'desserts', label: 'Desserts' },
-        { id: 'drinks', label: 'Drinks' },
-    ], []);
+    // Build category tabs from API response array: always prepend "All"
+    const menuCategories = useMemo(() => {
+        const cats = menuGrouped.map((group) => ({
+            id: group._id,
+            label: group.name,
+        }));
+        return [{ id: 'all', label: 'All' }, ...cats];
+    }, [menuGrouped]);
 
-    const products = useMemo(() => ({
-        deals: [
-            { id: 1, name: 'Cheese Burst Large', description: '1 Large Cheese Burst Pizza with Large Drink', price: 2650, originalPrice: 2770, image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop', discount: 120 },
-            { id: 2, name: 'Double Melt Deal Large', description: '1 Large Double Melt Pizza with Large Drink', price: 3350, originalPrice: 3470, image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop', discount: 120 },
-            { id: 3, name: 'Super Loaded Large', description: '1 Super Loaded Large Pizza + 1.5 Ltr Drink', price: 2200, originalPrice: 2320, image: 'https://images.unsplash.com/photo-1571997478779-2adcbbe9ab2f?w=400&h=300&fit=crop', discount: 120 },
-        ],
-        pizzas: [
-            { id: 4, name: 'Margherita Pizza', description: 'Fresh tomato sauce, mozzarella, fresh basil', price: 1500, image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop' },
-            { id: 5, name: 'Pepperoni Pizza', description: 'Crispy pepperoni with mozzarella cheese', price: 1800, image: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=300&fit=crop' },
-            { id: 6, name: 'Veggie Delight', description: 'Bell peppers, onions, mushrooms, olives', price: 1600, image: 'https://images.unsplash.com/photo-1511689660979-10d2b1aada49?w=400&h=300&fit=crop' },
-            { id: 7, name: 'BBQ Chicken', description: 'Smoky BBQ sauce with grilled chicken', price: 2000, image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&h=300&fit=crop' },
-        ],
-        chicken: [
-            { id: 8, name: 'Fried Chicken Wings', description: '8 pieces of crispy fried chicken wings', price: 1200, image: 'https://images.unsplash.com/photo-1608039829572-78524f79c4c7?w=400&h=300&fit=crop' },
-            { id: 9, name: 'BBQ Chicken Strips', description: '6 pieces BBQ marinated chicken strips', price: 1400, image: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=400&h=300&fit=crop' },
-            { id: 10, name: 'Spicy Chicken Tenders', description: '5 pieces spicy breaded chicken tenders', price: 1100, image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400&h=300&fit=crop' },
-        ],
-        sides: [
-            { id: 11, name: 'Garlic Fries', description: 'Crispy fries with garlic and herbs', price: 450, image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop' },
-            { id: 12, name: 'Cheese Fries', description: 'Golden fries with melted cheese', price: 500, image: 'https://images.unsplash.com/photo-1630431341973-02e1d0f45e79?w=400&h=300&fit=crop' },
-            { id: 13, name: 'Loaded Nachos', description: 'Tortilla chips with cheese and jalapeños', price: 600, image: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400&h=300&fit=crop' },
-        ],
-        desserts: [
-            { id: 14, name: 'Chocolate Lava Cake', description: 'Warm chocolate cake with flowing center', price: 350, image: 'https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=400&h=300&fit=crop' },
-            { id: 15, name: 'Cheesecake Slice', description: 'Creamy New York style cheesecake', price: 400, image: 'https://images.unsplash.com/photo-1533134486753-c833f0ed4866?w=400&h=300&fit=crop' },
-            { id: 16, name: 'Brownie Sundae', description: 'Warm brownie with ice cream', price: 450, image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&h=300&fit=crop' },
-        ],
-        drinks: [
-            { id: 17, name: 'Coca Cola (1.5L)', description: 'Cold refreshing cola drink', price: 300, image: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=400&h=300&fit=crop' },
-            { id: 18, name: 'Sprite (1.5L)', description: 'Lemon-lime flavored drink', price: 300, image: 'https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?w=400&h=300&fit=crop' },
-            { id: 19, name: 'Orange Juice', description: 'Fresh squeezed orange juice', price: 250, image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=400&h=300&fit=crop' },
-        ],
-    }), []);
+    // Build flat products map keyed by category _id from API data
+    const products = useMemo(() => {
+        const map = {};
+        menuGrouped.forEach((group) => {
+            map[group._id] = (group.items || [])
+                .filter((item) => item.isActive !== false)
+                .map((item) => ({
+                    id: item._id,
+                    name: item.name,
+                    description: item.description || '',
+                    price: item.price,
+                    originalPrice: item.originalPrice,
+                    image: item.image,
+                }));
+        });
+        return map;
+    }, [menuGrouped]);
 
     const handleAddToCart = useCallback((product) => {
         addToCart(product);
@@ -156,9 +164,8 @@ function PlaceOrderPage() {
 
     // ── Normal checkout: create a new order ──
     const handleCheckout = async (e) => {
-        if (editContext) return handleAppendCheckout(e);
-
         e.preventDefault();
+        if (editContext) return handleAppendCheckout(e);
         if (cartItems.length === 0) {
             addNotification({ type: 'error', message: 'No items in order!' });
             return;
@@ -264,12 +271,30 @@ function PlaceOrderPage() {
                     />
 
                     <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-6 py-3 sm:py-4 md:py-6 scrollbar-thin">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 pb-4">
-                            {filteredProducts.map((product) => (
-                                <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
-                            ))}
-                        </div>
-                        {filteredProducts.length === 0 && (
+                        {menuLoading ? (
+                            <div className="flex flex-col items-center justify-center py-16 gap-3">
+                                <div className="spinner" />
+                                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading menu…</p>
+                            </div>
+                        ) : menuError ? (
+                            <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+                                <p className="text-sm font-semibold" style={{ color: 'var(--danger)' }}>{menuError}</p>
+                                <button
+                                    onClick={() => window.location.reload()}
+                                    className="text-sm font-medium underline"
+                                    style={{ color: 'var(--primary)' }}
+                                >
+                                    Retry
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 pb-4">
+                                {filteredProducts.map((product) => (
+                                    <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+                                ))}
+                            </div>
+                        )}
+                        {!menuLoading && !menuError && filteredProducts.length === 0 && (
                             <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
                                 <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'var(--bg-surface-3)' }}>
                                     <svg className="w-7 h-7" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

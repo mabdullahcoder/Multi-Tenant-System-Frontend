@@ -6,6 +6,7 @@ import {
     HiOutlineEye,
     HiOutlineTrash,
     HiOutlineChevronDown,
+    HiOutlinePlus,
 } from 'react-icons/hi';
 import StatusSwitcher from './StatusSwitcher';
 import { useUI } from '../../context/UIContext';
@@ -41,6 +42,7 @@ function ActionsDropdown({
     onToggle,
     onViewDetails,
     onDelete,
+    onAddItem,
     userRole,
     align = 'right',
 }) {
@@ -49,7 +51,9 @@ function ActionsDropdown({
     const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, openUp: false, ready: false });
 
     const MENU_WIDTH = 208;  // w-52
-    const MENU_HEIGHT = userRole === 'super-admin' ? 112 : 56; // approx rendered height
+    const canDelete = userRole === 'super-admin';
+    const canAddItem = userRole === 'admin' || userRole === 'super-admin';
+    const MENU_HEIGHT = 56 + (canAddItem ? 56 : 0) + (canDelete ? 56 : 0); // approx rendered height
     const GAP = 4; // px gap between trigger and menu
 
     const calcPosition = () => {
@@ -173,8 +177,26 @@ function ActionsDropdown({
                                 View Details
                             </button>
 
+                            {/* Add Item — admin & super-admin */}
+                            {canAddItem && (
+                                <>
+                                    <div className="my-1.5 mx-3" style={{ borderTop: '1px solid var(--border)' }} />
+                                    <button
+                                        role="menuitem"
+                                        onClick={() => { onAddItem(order); onToggle(); }}
+                                        className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm font-medium transition-colors duration-100"
+                                        style={{ color: 'var(--text-primary)' }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
+                                    >
+                                        <HiOutlinePlus className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
+                                        Add Item
+                                    </button>
+                                </>
+                            )}
+
                             {/* Delete — super-admin only */}
-                            {userRole === 'super-admin' && (
+                            {canDelete && (
                                 <>
                                     <div className="my-1.5 mx-3" style={{ borderTop: '1px solid var(--border)' }} />
                                     <button
@@ -206,6 +228,7 @@ function ResponsiveOrderTable({
     orders,
     onStatusChange,
     onDelete,
+    onAddItem,
     onViewDetails,
     getStatusConfig,
     getAvailableStatusTransitions,
@@ -410,6 +433,7 @@ function ResponsiveOrderTable({
                                     onToggle={() => toggle(order._id)}
                                     onViewDetails={onViewDetails}
                                     onDelete={onDelete}
+                                    onAddItem={onAddItem}
                                     userRole={userRole}
                                     align="right"
                                 />
@@ -563,6 +587,18 @@ function ResponsiveOrderTable({
                                 <div className="text-center text-xs italic mb-2" style={{ color: 'var(--text-muted)' }}>
                                     Status management moved to the top-right button.
                                 </div>
+                                {(userRole === 'admin' || userRole === 'super-admin') && (
+                                    <button
+                                        onClick={() => { onAddItem(order); toggle(order._id); }}
+                                        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors min-h-[40px]"
+                                        style={{ backgroundColor: 'rgba(59,130,246,0.08)', color: 'var(--primary)', border: '1px solid rgba(59,130,246,0.2)' }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(59,130,246,0.15)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(59,130,246,0.08)'}
+                                    >
+                                        <HiOutlinePlus className="w-4 h-4" />
+                                        Add Item
+                                    </button>
+                                )}
                                 {userRole === 'super-admin' && (
                                     <button
                                         onClick={() => { onDelete(order._id, order.orderId); toggle(order._id); }}

@@ -20,8 +20,25 @@ const getInitialState = () => {
             }
         }
 
-        // Validate token is a string
-        const validToken = (typeof token === 'string' && token.length > 0) ? token : null;
+        // Validate token is a string and not expired
+        let validToken = null;
+        if (typeof token === 'string' && token.length > 0) {
+            try {
+                // Decode JWT payload (base64) to check expiry without a library
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.exp && payload.exp * 1000 > Date.now()) {
+                    validToken = token;
+                } else {
+                    console.warn('Token expired, clearing auth state');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                }
+            } catch {
+                // Malformed token — treat as invalid
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+            }
+        }
 
         return {
             user: parsedUser,

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/layouts/MainLayout';
 import { orderAPI } from '../../services/orderAPI';
+import { useSocket } from '../../context/SocketContext';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import { HiArrowLeft, HiRefresh } from 'react-icons/hi';
@@ -9,6 +10,7 @@ import { HiArrowLeft, HiRefresh } from 'react-icons/hi';
 function OrderDetailsPage() {
     const { orderId } = useParams();
     const navigate = useNavigate();
+    const socket = useSocket();
     const [order, setOrder] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -16,6 +18,38 @@ function OrderDetailsPage() {
     useEffect(() => {
         fetchOrder();
     }, [orderId]);
+
+    // Real-time status updates while user is on this page
+    useEffect(() => {
+        if (!socket || !order) return;
+
+        const handleStatusUpdate = (data) => {
+            if (data.orderId !== order.orderId && data._id !== order._id) return;
+            setOrder((prev) => prev ? { ...prev, status: data.status, updatedAt: data.updatedAt } : prev);
+        };
+
+        const handleItemsUpdated = (data) => {
+            if (data.orderId !== order.orderId && data._id !== order._id) return;
+            setOrder((prev) => prev ? { ...prev, items: data.items, totalAmount: data.totalAmount, updatedAt: data.updatedAt } : prev);
+        };
+
+        const handleCancelled = (data) => {
+            if (data.orderId !== order.orderId && data._id !== order._id) return;
+            setOrder((prev) => prev ? { ...prev, status: 'cancelled', updatedAt: data.updatedAt } : prev);
+        };
+
+        socket.on('orderStatusUpdate', handleStatusUpdate);
+        socket.on('orderItemsUpdated', handleItemsUpdated);
+        socket.on('orderItemsAppended', handleItemsUpdated);
+        socket.on('orderCancelled', handleCancelled);
+
+        return () => {
+            socket.off('orderStatusUpdate', handleStatusUpdate);
+            socket.off('orderItemsUpdated', handleItemsUpdated);
+            socket.off('orderItemsAppended', handleItemsUpdated);
+            socket.off('orderCancelled', handleCancelled);
+        };
+    }, [socket, order?.orderId, order?._id]);
 
     const fetchOrder = async () => {
         setIsLoading(true);

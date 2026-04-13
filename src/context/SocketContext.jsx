@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 
-const SocketContext = createContext(null);
+const SocketContext = createContext({ socket: null, isConnected: false });
 
 export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
@@ -17,7 +17,7 @@ export const SocketProvider = ({ children }) => {
         if (!isAuthenticated || !token) {
             // Cleanup if logged out
             if (socketRef.current) {
-                console.log('🔌 User not authenticated, disconnecting socket');
+                console.log('User not authenticated, disconnecting socket');
                 socketRef.current.removeAllListeners();
                 socketRef.current.disconnect();
                 socketRef.current = null;
@@ -48,15 +48,15 @@ export const SocketProvider = ({ children }) => {
             });
 
             const handleConnect = () => {
-                console.log('✓ Socket CONNECTED | Socket ID:', newSocket.id);
-                console.log('✓ User Role:', user?.role);
-                console.log('✓ Transport:', newSocket.io.engine.transport.name);
+                console.log('Socket CONNECTED | Socket ID:', newSocket.id);
+                console.log('User Role:', user?.role);
+                console.log('Transport:', newSocket.io.engine.transport.name);
                 setIsConnected(true);
                 reconnectAttemptRef.current = 0;
             };
 
             const handleConnectError = (err) => {
-                console.error('✗ Socket connection error:', err.message);
+                console.error('Socket connection error:', err.message);
                 setIsConnected(false);
                 reconnectAttemptRef.current += 1;
                 console.warn(
@@ -65,7 +65,7 @@ export const SocketProvider = ({ children }) => {
             };
 
             const handleDisconnect = (reason) => {
-                console.log('✓ Socket disconnected | Reason:', reason);
+                console.log('Socket disconnected | Reason:', reason);
                 setIsConnected(false);
 
                 if (reason !== 'io client namespace disconnect') {
@@ -90,7 +90,7 @@ export const SocketProvider = ({ children }) => {
         }
 
         return () => {
-            console.log('🔌 Cleaning up Socket.IO connection');
+            console.log('Cleaning up Socket.IO connection');
             if (socketRef.current) {
                 socketRef.current.removeAllListeners();
                 socketRef.current.disconnect();
@@ -100,16 +100,19 @@ export const SocketProvider = ({ children }) => {
     }, [isAuthenticated, token, user?.role]);
 
     return (
-        <SocketContext.Provider value={socket}>
+        <SocketContext.Provider value={{ socket, isConnected }}>
             {children}
         </SocketContext.Provider>
     );
 };
 
 export const useSocket = () => {
-    const socket = useContext(SocketContext);
-    if (socket === undefined) {
-        console.warn('⚠️ useSocket: SocketProvider not found in component tree');
-    }
+    const { socket } = useContext(SocketContext);
     return socket;
+};
+
+// Expose connection status for UI indicators
+export const useSocketStatus = () => {
+    const { isConnected } = useContext(SocketContext);
+    return isConnected;
 };
