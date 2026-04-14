@@ -4,7 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
 import { useFormValidation, validateRegistrationForm } from '../hooks/useFormValidation';
 import authAPI from '../services/authAPI';
-import { HiOutlineAtSymbol, HiOutlineLockClosed, HiOutlineUser, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
+import { HiOutlineAtSymbol, HiOutlineLockClosed, HiOutlineUser } from 'react-icons/hi';
+import PasswordToggleButton from '../components/ui/PasswordToggleButton';
 
 function RegisterPage() {
     const navigate = useNavigate();
@@ -182,17 +183,10 @@ function RegisterPage() {
                                     className={`input-base pl-10 sm:pl-12 pr-12 ${errors.password ? 'input-error' : ''}`}
                                     placeholder="Min. 8 characters"
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword((v) => !v)}
-                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
-                                    style={{ color: 'var(--text-muted)' }}
-                                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
-                                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
-                                >
-                                    {showPassword ? <HiOutlineEyeOff className="w-4 h-4" /> : <HiOutlineEye className="w-4 h-4" />}
-                                </button>
+                                <PasswordToggleButton
+                                    show={showPassword}
+                                    onToggle={() => setShowPassword((v) => !v)}
+                                />
                             </div>
                             {errors.password ? (
                                 <p id="reg-password-error" role="alert" className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--danger)' }}>
@@ -227,17 +221,11 @@ function RegisterPage() {
                                     className={`input-base pl-10 sm:pl-12 pr-12 ${errors.confirmPassword ? 'input-error' : ''}`}
                                     placeholder="Re-enter your password"
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword((v) => !v)}
+                                <PasswordToggleButton
+                                    show={showConfirmPassword}
+                                    onToggle={() => setShowConfirmPassword((v) => !v)}
                                     aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
-                                    style={{ color: 'var(--text-muted)' }}
-                                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
-                                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
-                                >
-                                    {showConfirmPassword ? <HiOutlineEyeOff className="w-4 h-4" /> : <HiOutlineEye className="w-4 h-4" />}
-                                </button>
+                                />
                             </div>
                             {errors.confirmPassword && (
                                 <p id="reg-confirmPassword-error" role="alert" className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--danger)' }}>
