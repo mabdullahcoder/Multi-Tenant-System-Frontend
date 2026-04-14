@@ -248,7 +248,8 @@ function ReportsPage() {
                                     <TableHead>Type</TableHead>
                                     <TableHead>Format</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Created</TableHead>
+                                    <TableHead>Date Range</TableHead>
+                                    <TableHead>Generated On</TableHead>
                                     <TableHead>Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -263,7 +264,13 @@ function ReportsPage() {
                                                 {report.status}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>{new Date(report.createdAt).toLocaleDateString()}</TableCell>
+                                        <TableCell className="text-xs">
+                                            {report.dateRange?.startDate && report.dateRange?.endDate
+                                                ? `${new Date(report.dateRange.startDate).toLocaleDateString()} – ${new Date(report.dateRange.endDate).toLocaleDateString()}`
+                                                : <span style={{ color: 'var(--text-muted)' }}>All dates</span>
+                                            }
+                                        </TableCell>
+                                        <TableCell>{new Date(report.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
                                         <TableCell>
                                             <button
                                                 onClick={() => handleDownload(report._id, report)}

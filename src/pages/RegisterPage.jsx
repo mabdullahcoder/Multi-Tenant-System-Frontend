@@ -56,9 +56,6 @@ function RegisterPage() {
             <div className="w-full max-w-md">
                 {/* Logo / Brand */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style={{ backgroundColor: 'var(--primary)' }}>
-                        <img src="/logo.svg" alt="Logo" className="w-8 h-8 brightness-0 invert" />
-                    </div>
                     <h1 className="text-heading-2 mb-1">Create your account</h1>
                     <p className="text-description">Join us and start ordering today</p>
                 </div>

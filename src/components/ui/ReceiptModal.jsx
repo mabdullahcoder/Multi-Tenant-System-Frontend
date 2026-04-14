@@ -52,13 +52,110 @@ function ReceiptModal({
     const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-    const handlePrint = () => window.print();
+    const handlePrint = () => {
+        const content = printRef.current;
+        if (!content) return;
+
+        const printWindow = window.open('', '_blank', 'width=480,height=700');
+        if (!printWindow) {
+            // Fallback: inject a temporary print-only stylesheet and use window.print()
+            const style = document.createElement('style');
+            style.id = '__receipt_print_style__';
+            style.textContent = `
+                @media print {
+                    body > *:not(#__receipt_print_root__) { display: none !important; }
+                    #__receipt_print_root__ { display: block !important; position: fixed; inset: 0; padding: 24px; }
+                }
+            `;
+            const wrapper = document.createElement('div');
+            wrapper.id = '__receipt_print_root__';
+            wrapper.innerHTML = content.innerHTML;
+            document.head.appendChild(style);
+            document.body.appendChild(wrapper);
+            window.print();
+            document.head.removeChild(style);
+            document.body.removeChild(wrapper);
+            return;
+        }
+
+        printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Order Receipt</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; color: #111; background: #fff; padding: 24px; max-width: 380px; margin: 0 auto; }
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .font-bold { font-weight: 700; }
+    .font-semibold { font-weight: 600; }
+    .font-medium { font-weight: 500; }
+    .font-mono { font-family: monospace; }
+    .text-xs { font-size: 11px; }
+    .text-sm { font-size: 12px; }
+    .text-\\[11px\\] { font-size: 11px; }
+    .text-\\[9px\\] { font-size: 9px; }
+    .text-\\[10px\\] { font-size: 10px; }
+    .uppercase { text-transform: uppercase; }
+    .tracking-widest { letter-spacing: 0.1em; }
+    .tracking-wide { letter-spacing: 0.05em; }
+    .leading-snug { line-height: 1.375; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .flex { display: flex; }
+    .items-start { align-items: flex-start; }
+    .justify-between { justify-content: space-between; }
+    .gap-4 { gap: 16px; }
+    .gap-3 { gap: 12px; }
+    .flex-1 { flex: 1; }
+    .flex-shrink-0 { flex-shrink: 0; }
+    .min-w-0 { min-width: 0; }
+    .space-y-2 > * + * { margin-top: 8px; }
+    .space-y-1 > * + * { margin-top: 4px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mb-3 { margin-bottom: 12px; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-1 { margin-bottom: 4px; }
+    .mb-1\\.5 { margin-bottom: 6px; }
+    .mb-0\\.5 { margin-bottom: 2px; }
+    .mb-1 { margin-bottom: 4px; }
+    .mt-4 { margin-top: 16px; }
+    .mt-2 { margin-top: 8px; }
+    .mt-0\\.5 { margin-top: 2px; }
+    .py-0\\.5 { padding-top: 2px; padding-bottom: 2px; }
+    .py-1 { padding-top: 4px; padding-bottom: 4px; }
+    .px-3\\.5 { padding-left: 14px; padding-right: 14px; }
+    .py-2\\.5 { padding-top: 10px; padding-bottom: 10px; }
+    .pt-3 { padding-top: 12px; }
+    .rounded-lg { border-radius: 8px; }
+    .border { border: 1px solid #e5e7eb; }
+    .border-t { border-top: 1px solid #e5e7eb; }
+    .border-dashed { border-style: dashed; }
+    .my-3 { margin-top: 12px; margin-bottom: 12px; }
+    .receipt-info-box { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; }
+    .receipt-section-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #6b7280; margin-bottom: 6px; }
+    .color-muted { color: #6b7280; }
+    .color-primary-text { color: #111; }
+    .color-success { color: #059669; }
+    .color-primary { color: #3b82f6; }
+    @media print { body { padding: 16px; } }
+  </style>
+</head>
+<body>${content.innerHTML}</body>
+</html>`);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 300);
+    };
 
     return (
         <>
             {/* ── Overlay ── */}
             <div
-                className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 print:hidden"
+                className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
                 onClick={onClose}
             >
                 {/* ── Modal shell ── */}
@@ -69,7 +166,7 @@ function ReceiptModal({
                 >
                     {/* ── Modal header ── */}
                     <div
-                        className="flex items-center justify-between px-5 py-3.5 flex-shrink-0 print:hidden"
+                        className="flex items-center justify-between px-5 py-3.5 flex-shrink-0"
                         style={{ borderBottom: '1px solid var(--border)' }}
                     >
                         <div className="flex items-center gap-2">
@@ -214,7 +311,7 @@ function ReceiptModal({
 
                     {/* ── Footer actions ── */}
                     <div
-                        className="flex gap-2 px-5 py-3.5 flex-shrink-0 print:hidden"
+                        className="flex gap-2 px-5 py-3.5 flex-shrink-0"
                         style={{ borderTop: '1px solid var(--border)' }}
                     >
                         <button
@@ -236,20 +333,7 @@ function ReceiptModal({
                 </div>
             </div>
 
-            {/* ── Print styles ── */}
             <style>{`
-                @media print {
-                    body > * { visibility: hidden; }
-                    .receipt-content,
-                    .receipt-content * { visibility: visible; }
-                    .receipt-content {
-                        position: fixed;
-                        inset: 0;
-                        padding: 24px;
-                        max-width: 380px;
-                        margin: 0 auto;
-                    }
-                }
                 .receipt-scroll {
                     scrollbar-width: thin;
                     scrollbar-color: #e5e7eb transparent;

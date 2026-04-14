@@ -321,10 +321,11 @@ function OrdersTab() {
                                     <TableRow>
                                         <TableHead>Order ID</TableHead>
                                         <TableHead>Customer</TableHead>
+                                        <TableHead>Items</TableHead>
                                         <TableHead>Amount</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead>Payment</TableHead>
-                                        <TableHead>Date</TableHead>
+                                        <TableHead>Order Date</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -332,10 +333,31 @@ function OrdersTab() {
                                         <TableRow key={o._id}>
                                             <TableCell className="font-mono text-xs">{o.orderId}</TableCell>
                                             <TableCell>{o.userId ? `${o.userId.firstName} ${o.userId.lastName}` : '—'}</TableCell>
+                                            <TableCell>
+                                                {o.items && o.items.length > 0 ? (
+                                                    <div className="space-y-1">
+                                                        {o.items.map((item, idx) => (
+                                                            <div key={idx} className="text-xs" style={{ color: 'var(--text-primary)' }}>
+                                                                <span className="font-medium">{item.productName}</span>
+                                                                <span style={{ color: 'var(--text-muted)' }}>
+                                                                    {' '}×{item.quantity} @ ₨{Number(item.price || 0).toLocaleString('en-PK', { minimumFractionDigits: 2 })}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-xs" style={{ color: 'var(--text-primary)' }}>
+                                                        {o.productName || '—'}
+                                                        {o.quantity ? <span style={{ color: 'var(--text-muted)' }}> ×{o.quantity}</span> : null}
+                                                    </span>
+                                                )}
+                                            </TableCell>
                                             <TableCell className="font-semibold">{fmt(o.totalAmount)}</TableCell>
                                             <TableCell><Badge variant={statusColors[o.status] || 'default'}>{o.status}</Badge></TableCell>
                                             <TableCell className="capitalize text-xs">{o.paymentMethod?.replace(/_/g, ' ')}</TableCell>
-                                            <TableCell className="text-xs">{new Date(o.createdAt).toLocaleDateString()}</TableCell>
+                                            <TableCell className="text-xs">
+                                                {new Date(o.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
