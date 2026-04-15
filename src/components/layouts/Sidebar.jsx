@@ -19,7 +19,7 @@ import {
 
 const USER_MENU = [
     { icon: HiOutlineHome, label: 'Dashboard', path: '/user/dashboard' },
-    { icon: HiOutlineFlag, label: 'Order Menu', path: '/user/place-order' },
+    { icon: HiOutlineFlag, label: 'POS', path: '/user/place-order' },
     { icon: HiOutlineBell, label: 'My Orders', path: '/user/my-orders' },
     { icon: HiOutlineDocumentText, label: 'Reports', path: '/user/reports' },
     { icon: HiOutlineUser, label: 'Profile', path: '/user/profile' },
@@ -35,7 +35,7 @@ const ADMIN_MENU = [
     { icon: HiOutlineClipboardList, label: 'Activity Logs', path: '/admin/activity-logs' },
     { icon: HiOutlineUser, label: 'Profile', path: '/admin/profile' },
     // Customer-facing views
-    { icon: HiOutlineShoppingCart, label: 'Order Menu', path: '/user/place-order' },
+    { icon: HiOutlineShoppingCart, label: 'POS', path: '/user/place-order' },
     { icon: HiOutlineBell, label: 'User Orders', path: '/user/my-orders' },
 ];
 
